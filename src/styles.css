@@ -1,0 +1,62 @@
+.cdm-bar{
+    border: 2px solid black;
+    border-radius: 5px;
+    border-color: orangered;
+    background: white;
+    height: 22px;
+    font-size: 16px;
+    padding: 3px;
+}
+
+.cdm-stats {
+    float: left;
+    width: 50%;
+}
+
+@keyframes cdm-message-ani{
+    0%{
+        opacity: 1;
+    }
+    100%{
+        opacity: 0.2;
+    }
+}
+
+@keyframes cdm-stats-ani{
+    0%{
+        background-color: #00ff0088;
+    }
+    100%{
+        background-color: #00FF0000;
+    }
+}
+
+.cdm-message {
+    float: right;
+    width: 50%;
+}
+
+.cdm-message-text {
+    animation-name: cdm-message-ani;
+    animation-duration: 2000ms;
+    animation-fill-mode: forwards;
+}
+
+.cdm-stats-text {
+    animation-name: cdm-stats-ani;
+    animation-duration: 700ms;
+    animation-fill-mode: forwards;
+}
+
+
+.cdm-hidden {
+    /* background-color: #cccccc !important; */
+    color: darkgray !important;
+}
+
+.diffContentA.cdm-hidden , .diffLineNumbersA.cdm-hidden {
+    background-color: #FFF0F0 !important;
+}
+.diffContentB.cdm-hidden , .diffLineNumbersB.cdm-hidden{
+    background-color: #DCFFDC !important;
+}

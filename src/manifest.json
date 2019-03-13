@@ -1,0 +1,23 @@
+{
+  "manifest_version": 2,
+ 
+  "name": "Crucible Diff Marker",
+  "version": "0.1.0",
+  "description": "Allows to mark individual changes in Crucible as done",
+
+  "permissions": [
+    "storage"
+  ],
+
+  "web_accessible_resources": [
+    "images/*"
+  ],
+ 
+  "content_scripts": [{
+    "run_at": "document_end",
+    "css": ["styles.css"],
+    "js": ["3rd/jquery-3.3.1.slim.min.js", "content.js"],
+    "matches": ["https://*/fisheye/cru/*"]
+  }]
+  
+}
