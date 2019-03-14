@@ -123,11 +123,10 @@ class CDM
     buttonPressed(event)
     {
         let target = event.delegateTarget;
-        console.log(target);
         let set = $(target).hasClass("cdm-setAll");
         for (let i = 0; i < this.diffs.length; i++) {
             let diff = this.diffs[i];
-            this.setDone(this.diffs[i].getId(), set);
+            this.setDone(diff.getId(), set);
             this.updateDiff(diff);
         }
         this.initDataSave();
@@ -178,7 +177,7 @@ class CDM
     {
         // Always remove
         if (this.data.done.indexOf(id) >= 0) {
-            this.data.done.splice(this.data.done.indexOf(id));
+            this.data.done.splice(this.data.done.indexOf(id), 1);
         }
         // If done, add
         if (done) {
