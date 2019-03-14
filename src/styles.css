@@ -1,16 +1,16 @@
 .cdm-bar{
-    border: 2px solid black;
+    border: 2px solid deepskyblue;
     border-radius: 5px;
-    border-color: orangered;
     background: white;
-    height: 22px;
+    height: 28px;
+    vertical-align: center;
     font-size: 16px;
     padding: 3px;
 }
 
 .cdm-stats {
     float: left;
-    width: 50%;
+    width: 35%;
 }
 
 @keyframes cdm-message-ani{
@@ -33,7 +33,7 @@
 
 .cdm-message {
     float: right;
-    width: 50%;
+    width: 35%;
 }
 
 .cdm-message-text {
@@ -48,10 +48,43 @@
     animation-fill-mode: forwards;
 }
 
+.cdm-tools {
+    width: 30%
+}
+
+.cdm-button {
+    background-color: white;
+    border: 2px solid;
+    border-radius: 5px;
+    padding: 2px;
+    font-size: 16px;
+    height: 24px;
+    vertical-align: center;
+}
+
+.cdm-clearAll {
+    border-color: orangered;
+}
+.cdm-setAll {
+    border-color: darkseagreen;
+}
 
 .cdm-hidden {
     /* background-color: #cccccc !important; */
     color: darkgray !important;
+}
+
+.aui-badge.cdm-counter {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+.aui-badge.cdm-counter-done {
+    background: #ccffcc;
+    font-weight: lighter;
+}
+.aui-badge.cdm-counter-todo {
+    background: #ffcccc;
+    font-weight: bold;
 }
 
 .diffContentA.cdm-hidden , .diffLineNumbersA.cdm-hidden {

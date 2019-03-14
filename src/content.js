@@ -34,6 +34,7 @@ class CDM
 {
     DIFF_DATA_MAX_ATTEMPTS = 30;
     DIFF_DATA_ATTEMPTS_DELAY_MS = 1000;
+    LABEL = "CrucibleDiffMarker";
 
     constructor()
     {
@@ -66,20 +67,19 @@ class CDM
         this.barId = "cdm-bar-" + id;
         this.statsId = "cdm-stats-" + id;
         this.messageId = "cdm-message-" + id;
+        this.counterId = "cdm-counter-" + id;
 
-        this.bar = this.getBar();
-        console.log(this.bar);
+        this.initBar();
 
         // Load data for this file diff
         this.initDataLoad();
     }
 
-    getBar()
+    initBar()
     {
         let bar = $("#"+this.barId);
-        console.log(bar);
         if (bar.length === 0) {
-            /** Create a new bar */
+            // Create a new bar
             let fci = $("#frx-context-info-" + this.id);
             if (fci.length === 0) {
                 console.error("Can't find frx-context-info");
@@ -87,14 +87,50 @@ class CDM
             }
             fci.after(`
 <div class="cdm-bar" id="${this.barId}">
-<span class="cdm-stats" id="${this.statsId}"></span>
+<span class="cdm-stats" id="${this.statsId}">${this.LABEL}</span>
+<span class="cdm-tools"">
+    
+      <span class="cdm-button cdm-clearAll"><img src="${this.redUrl}" width="20" height="20"/>Clear all</span>
+      <span class="cdm-button cdm-setAll"><img src="${this.greenUrl}" width="20" height="20"/> Mark all done</span>
+</span>
 <span class="cdm-message" id="${this.messageId}"></span>
 </div>
 `);
             bar = $("#"+this.barId);
+
+            $("span.cdm-button").click(this.buttonPressed.bind(this));
         }
-        console.log("bar=" + bar);
-        return bar;
+        this.bar = bar;
+    }
+
+    initCounter()
+    {
+        let counter = $("#"+this.counterId);
+        if (counter.length === 0) {
+            // Create a new counter
+            let fcc = $("#frxCommentCount" + this.id);
+            if (fcc.length === 0) {
+                console.error("Can't find frx-comment-count");
+                return;
+            }
+            fcc.after(`<span id="${this.counterId}" class="aui-badge cdm-counter"></span>`);
+            counter = $("#"+this.counterId);
+        }
+        this.counter = counter;
+    }
+
+
+    buttonPressed(event)
+    {
+        let target = event.delegateTarget;
+        console.log(target);
+        let set = $(target).hasClass("cdm-setAll");
+        for (let i = 0; i < this.diffs.length; i++) {
+            let diff = this.diffs[i];
+            this.setDone(this.diffs[i].getId(), set);
+            this.updateDiff(diff);
+        }
+        this.initDataSave();
     }
 
     initDataLoad()
@@ -211,7 +247,7 @@ class CDM
         let todo = total - done;
 
         $("#" + this.statsId).html(`
-CrucibleDiffMarker: &nbsp; ${total} diffs in total. 
+${this.LABEL}: &nbsp; ${total} diffs in total. 
 &nbsp;&nbsp;
 <img src="${this.greenUrl}" width="16" height="16"/>
   <span class="cdm-stats-text">${done} diffs done.</span>
@@ -219,6 +255,12 @@ CrucibleDiffMarker: &nbsp; ${total} diffs in total.
 <img src="${this.redUrl}" width="16" height="16"/>
   <span class="cdm-stats-text"> ${todo} diffs to do.</span>
 `);
+
+        // Update the counter on the left
+        this.initCounter();
+        this.counter.html(`${done}/${total}`);
+        this.counter.removeClass("cdm-counter-todo cdm-counter-done");
+        this.counter.addClass(done === total ? "cdm-counter-done" : "cdm-counter-todo");
     }
 
     updateDiff(diff)
@@ -240,10 +282,7 @@ CrucibleDiffMarker: &nbsp; ${total} diffs in total.
             }
         }
 
-        let elems = document.getElementsByClassName(id);
-        for (let e = 0; e < elems.length; e++) {
-            elems[e].addEventListener("click", this.flip.bind(this, diff));
-        }
+        $("." + id).click(this.flip.bind(this, diff));
 
         this.updateStats();
     }
