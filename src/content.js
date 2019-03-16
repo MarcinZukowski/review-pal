@@ -92,9 +92,8 @@ class CDM
     middleClick(ev)
     {
         let target = $(ev.target);
-        // Only handle middle-click on number columns for diffs
-        if (!(ev.which === 2 &&
-                (target.hasClass("diffLineNumbersA") || target.hasClass("diffLineNumbersB")))) {
+        // Only handle middle-click on diff Lines
+        if (!(ev.which === 2 && target.parents(".sourceLine.is-diff").length)) {
             return true;
         }
         // Find parent TR
@@ -124,6 +123,7 @@ class CDM
         {
             if (diff.getId() === rowId) {
                 // Ignore, can't break on the first line.
+                this.message("Can't break on the first line!");
                 return true;
             }
             // New break, add it
@@ -354,10 +354,10 @@ class CDM
 ${this.LABEL}: &nbsp; ${total} diffs in total. 
 &nbsp;&nbsp;
 <img src="${this.greenUrl}" width="16" height="16"/>
-  <span class="cdm-stats-text">${done} diffs done.</span>
+  <span class="cdm-stats-text cdm-stats-done">${done} diffs done.</span>
 &nbsp;&nbsp;
 <img src="${this.redUrl}" width="16" height="16"/>
-  <span class="cdm-stats-text"> ${todo} diffs to do.</span>
+  <span class="cdm-stats-text cdm-stats-todo"> ${todo} diffs to do.</span>
 `);
 
         // Update the counter on the left
@@ -374,6 +374,43 @@ ${this.LABEL}: &nbsp; ${total} diffs in total.
                 frx.find(".leaveUnread").trigger("click");
             }
         }
+
+        $(".cdm-stats-todo").click(this.gotoNext.bind(this, false));
+        $(".cdm-stats-done").click(this.gotoNext.bind(this, true));
+    }
+
+    gotoNext(shouldBeDone)
+    {
+        let container = $("#sourceTable" + this.id);
+        let containerOffset = container.offset().top - container.scrollTop();
+        let currentTop = $(window).scrollTop();
+        let foundDiff = null;
+        let foundTop = 0;
+        for (let d = 0; d < this.diffs.length; d++) {
+            let diff = this.diffs[d];
+            if (this.isDone(diff.getId()) === shouldBeDone) {
+                let top = diff.rows[0].offset().top - containerOffset;
+                // Accept first matching row, or first matching after the current window position.
+                if (foundDiff === null || top > currentTop) {
+                    foundDiff = diff ;
+                    foundTop = top;
+                    if (top > currentTop) {
+                        break;
+                    }
+                }
+            }
+        }
+        if (foundDiff !== null) {
+            // Found something, scroll there
+            this.message(`Scrolling to ${foundDiff.getId()}`);
+            $(window).scrollTop(foundTop);
+            // Add animation and removal of it after it's done
+            foundDiff.rows[0].addClass("cdm-jump");
+            window.setTimeout(function() { this.removeClass("cdm-jump"); }.bind(foundDiff.rows[0]), 500);
+        } else {
+            this.message(`No ${shouldBeDone? "" : "un"}reviewed diffs!`);
+        }
+        return false;
     }
 
     hideDiffHeader(diff)

@@ -50,6 +50,17 @@
     animation-fill-mode: forwards;
 }
 
+@keyframes cdm-jump-ani{
+      0% { opacity: 1.0; }
+     50% { opacity: 0.2; }
+    100% { opacity: 1.0; }
+}
+.cdm-jump {
+    animation-name: cdm-jump-ani;
+    animation-duration: 500ms;
+    animation-fill-mode: forwards;
+}
+
 .cdm-tools {
     width: 30%
 }
