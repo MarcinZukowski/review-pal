@@ -1,7 +1,10 @@
 # Crucible Diff Marker
 
-A small Chrome extension that adds ability to mark individual changes (diff sections) 
-inside a file as done / not done.
+A small Chrome extension for Crucible that adds ability to mark individual changes (diff sections) 
+inside a file as done / not done. 
+It also allows splitting diffs into smaller sections (and marking them separately).
+
+It is super useful when reviewing complex diffs, with a lot of changes, or very large changes, in a single file.
 
 A result of roughly a day of work, it was fun to go blindly where I never ventured before 
 (Chrome extensions, understanding Crucible pages, and refreshing JS a bit...)
@@ -18,6 +21,7 @@ A result of roughly a day of work, it was fun to go blindly where I never ventur
 * Local browser persistence
 * Ability to mark all changes as done/not done
 * Automatically marking entire-file as reviewed once individual changes are reviewed
+* Works in both unified and side-by-side views
 
 #### Disclaimer
 
@@ -25,10 +29,6 @@ A result of roughly a day of work, it was fun to go blindly where I never ventur
   modify manifest.json if your Crucible is installed somewhere else
 * Only tested on Crucible 4.5 !!!
 
-
-#### Known issues
-
-* Not updating when *View* parameters (e.g. lines of context, unified/side-by-side view etc.) are modified 
 
 ## Installation
 

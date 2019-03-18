@@ -42,8 +42,8 @@ class CDMDiff
 
     static getRowRanges(row)
     {
-        let left = row.attr("data-from") || 0;
-        let right = row.attr("data-to") || 0;
+        let left = Number(row.attr("data-from")) || 0;
+        let right = Number(row.attr("data-to")) || 0;
         return [left, right];
     }
     static createId(left, right)
@@ -67,8 +67,10 @@ class CDM
     constructor()
     {
         this.data = null;
-        this.redUrl = chrome.runtime.getURL("images/red-128.png");
-        this.greenUrl = chrome.runtime.getURL("images/green-128.png");
+        let redUrl = chrome.runtime.getURL("images/red-128.png");
+        let greenUrl = chrome.runtime.getURL("images/green-128.png");
+        this.redHTML = `src="${redUrl}" alt="(_)" `;
+        this.greenHTML = `src="${greenUrl}" alt="(X)" `;
     }
 
     start()
@@ -177,8 +179,8 @@ class CDM
 <span class="cdm-stats" id="${this.statsId}">${this.LABEL}</span>
 <span class="cdm-tools"">
     
-      <span class="cdm-button cdm-clearAll"><img src="${this.redUrl}" width="20" height="20"/>Clear all</span>
-      <span class="cdm-button cdm-setAll"><img src="${this.greenUrl}" width="20" height="20"/> Mark all done</span>
+      <span class="cdm-button cdm-clearAll"><img ${this.redHTML} width="20" height="20"/>Clear all</span>
+      <span class="cdm-button cdm-setAll"><img ${this.greenHTML} width="20" height="20"/> Mark all done</span>
 </span>
 <span class="cdm-message" id="${this.messageId}"></span>
 </div>
@@ -242,8 +244,21 @@ class CDM
             this.data.breaks = [];
         }
 
+        // Detect node changes to be able to re-render our stuff
+        $("#frxouter" + this.id).on("DOMNodeInserted", this.nodeInserted.bind(this));
+
+
         this.waitDiffAttempts = 0;
         this.waitForDiff();
+    }
+
+    nodeInserted(ev)
+    {
+        // this element seems to be the last one inserted
+        if ($(ev.target).hasClass("floating-scrollbar")) {
+            this.initBar();
+            this.analyzeDiffs();
+        }
     }
 
     initDataSave(print = true)
@@ -297,8 +312,16 @@ class CDM
         this.analyzeDiffs();
     }
 
+    isUnified()
+    {
+        let elem = $(`#view_opts${this.id} .frx-diff-layout-opt`)[0];
+        return $(elem).hasClass("selected");
+    }
+
     analyzeDiffs()
     {
+        this.unified = this.isUnified();
+
         let diffStart = $("#diffStart" + this.id);
 
         // Go over all siblings of diffStart;
@@ -353,11 +376,15 @@ class CDM
         $("#" + this.statsId).html(`
 ${this.LABEL}: &nbsp; ${total} diffs in total. 
 &nbsp;&nbsp;
-<img src="${this.greenUrl}" width="16" height="16"/>
-  <span class="cdm-stats-text cdm-stats-done">${done} diffs done.</span>
+  <span class="cdm-stats-text cdm-stats-done">
+    <img ${this.greenHTML} width="16" height="16"/>
+    ${done} diffs done.
+  </span>
 &nbsp;&nbsp;
-<img src="${this.redUrl}" width="16" height="16"/>
-  <span class="cdm-stats-text cdm-stats-todo"> ${todo} diffs to do.</span>
+  <span class="cdm-stats-text cdm-stats-todo">
+    <img ${this.redHTML} width="16" height="16"/> 
+    ${todo} diffs to do.
+  </span>
 `);
 
         // Update the counter on the left
@@ -426,12 +453,17 @@ ${this.LABEL}: &nbsp; ${total} diffs in total.
     {
         let id = diff.getId();
         let isDone = this.isDone(id);
-        let img = isDone ? this.greenUrl : this.redUrl;
-        diff.rows[0].find(".tetrisColumn").html(`<img src="${img}" width="16" height="16" class="${id}"/>`);
-        let rightCell = diff.rows[0].find(".diffLineNumbersB:first");
-        rightCell.html(`<img src="${img}" width="16" height="16" class="${id}"/>`);
-        // Make it non-clickable
-        rightCell.addClass("tetrisColumn");
+        let imgHTML = isDone ? this.greenHTML: this.redHTML;
+        diff.rows[0].find(".tetrisColumn").html(`<img ${imgHTML} width="16" height="16" class="${id}"/>`);
+
+        // For side-by-side, add markers also in the right column
+        if (!this.unified) {
+            let rightCell = diff.rows[0].find(".diffLineNumbersB:first");
+            rightCell.html(`<img ${imgHTML} width="16" height="16" class="${id}"/>`);
+            // Make it non-clickable
+            rightCell.addClass("tetrisColumn");
+        }
+
         if (this.data.breaks.indexOf(id) >= 0) {
             diff.rows[0].addClass("cdm-forcedBreak");
         }
