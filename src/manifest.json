@@ -16,7 +16,12 @@
   "content_scripts": [{
     "run_at": "document_end",
     "css": ["styles.css"],
-    "js": ["3rd/jquery-3.3.1.slim.min.js", "content.js"],
+    "js": [
+      "3rd/jquery-3.3.1.slim.min.js",
+      "Backend.js",
+      "Core.js",
+      "SingleDiff.js"
+    ],
     "matches": ["https://*/fisheye/cru/*", "https://github.com/*/pull/*/files"]
   }]
 }

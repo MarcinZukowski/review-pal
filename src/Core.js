@@ -1,73 +1,11 @@
-/* Crucible Diff Marker */
-
-/* A single diff data */
-class CDMDiff
-{
-    constructor()
-    {
-        this.left_from = 0;
-        this.left_to = 0;
-        this.right_from = 0;
-        this.right_to = 0;
-        this.rows = [];
-    }
-    addRow(row)
-    {
-        let [left, right] = CDMDiff.getRowRanges(row);
-        this.left_from = this.left_from || left;
-        this.left_to = left || this.left_to;
-
-        this.right_from = this.right_from || right;
-        this.right_to = right || this.right_to;
-
-        this.rows.push(row);
-    }
-    getId()
-    {
-        return CDMDiff.createId(this.left_from, this.right_from);
-    }
-    toString()
-    {
-        return `Diff( left: ${this.left_from}-${this.left_to} right: ${this.right_from}-${this.right_to} )`;
-    }
-
-    // Does this diff include a given row (based on its left-right row ranges)
-    includes(left, right)
-    {
-        function helper(nr, from, to) {
-            return nr === 0 || (from > 0 && nr >= from && nr <= to);
-        }
-        return helper(left, this.left_from, this.left_to) && helper(right, this.right_from, this.right_to);
-    }
-
-    static getRowRanges(row)
-    {
-        let left = Number(row.attr("data-from")) || 0;
-        let right = Number(row.attr("data-to")) || 0;
-        return [left, right];
-    }
-    static createId(left, right)
-    {
-        return `diff_${left}_${right}`;
-    }
-    static getRowId(row)
-    {
-        let [left, right] = CDMDiff.getRowRanges(row);
-        return CDMDiff.createId(left, right);
-    }
-    getNumLines()
-    {
-        return (this.left_from  > 0 ? 1 + this.left_to  - this.left_from  : 0)
-             + (this.right_from > 0 ? 1 + this.right_to - this.right_from : 0);
-    }
-}
-
 /* Main class */
-class CDM
+class Core
 {
     DIFF_DATA_MAX_ATTEMPTS = 30;
     DIFF_DATA_ATTEMPTS_DELAY_MS = 1000;
     LABEL = `<a class="cdm-label" href="https://github.com/MarcinZukowski/crucible-diff-marker">CrucibleDiffMarker</a>`;
+
+    backend = new CrucibleBackend();
 
     constructor()
     {
@@ -123,16 +61,20 @@ class CDM
     middleClick(ev)
     {
         let target = $(ev.target);
-        // Only handle middle-click on diff Lines
-        if (!(ev.which === 2 && target.parents(".sourceLine.is-diff").length)) {
+
+        // Only middle click
+        if (ev.which !== 2) {
             return true;
         }
-        // Find parent TR
-        let row = target.parents("tr");
 
-        // Get its id
-        let [left, right] = CDMDiff.getRowRanges(row);
-        let rowId = CDMDiff.createId(left, right);
+        let [isDiff, left, right] = this.backend.getMiddleClickInfo(target);
+
+        // Only handle diff lines
+        if (! isDiff) {
+            return true;
+        }
+
+        let rowId = SingleDiff.createId(left, right);
 
         // Find its diff
         let diff = this.findDiffWith(left, right);
@@ -164,7 +106,6 @@ class CDM
         this.analyzeDiffs();
         this.message(msg);
         this.initDataSave(false)
-
     }
 
     hashChanged()
@@ -350,19 +291,13 @@ class CDM
         this.analyzeDiffs();
     }
 
-    isUnified()
-    {
-        let elem = $(`#view_opts${this.id} .frx-diff-layout-opt`)[0];
-        return $(elem).hasClass("selected");
-    }
-
     analyzeDiffs()
     {
         if (!this.data) {
             // Sometimes we get here when the data is not ready yet.
             return;
         }
-        this.unified = this.isUnified();
+        this.backend.unified = this.backend.isUnified();
 
         // Clean previously set breaks
 //        $(".cdm-forcedBreak").removeClass("cdm-forcedBreak");
@@ -382,7 +317,7 @@ class CDM
                 // Ignore comments
                 continue;
             }
-            let isBreak = this.data.breaks.indexOf(CDMDiff.getRowId(row)) >= 0;
+            let isBreak = this.data.breaks.indexOf(SingleDiff.getRowId(row)) >= 0;
             let isDiff = row.hasClass("is-diff");
             if (!isDiff || isBreak) {
                 // Possibly an end of a diff
@@ -396,7 +331,7 @@ class CDM
             if (isDiff) {
                 if (!diff) {
                     // New diff
-                    diff = new CDMDiff();
+                    diff = new SingleDiff();
                 }
                 // Update diff
                 diff.addRow(row);
@@ -450,12 +385,7 @@ ${this.LABEL}: &nbsp; ${total} diffs (${totalLines} lines) in total.
         this.counter.addClass(done === total ? "cdm-counter-done" : "cdm-counter-todo");
 
         if (done === total) {
-            // The file is done, mark as read if unread
-            let frx = $("#frxControls" + this.id);
-            if (frx.hasClass("unread")) {
-                console.log("Triggering click on", frx);
-                frx.find(".leaveUnread").trigger("click");
-            }
+            this.backend.markFileAsReviewed(this.id)
         }
 
         $(".cdm-stats-todo").click(this.gotoNext.bind(this, false));
@@ -511,53 +441,6 @@ ${this.LABEL}: &nbsp; ${total} diffs (${totalLines} lines) in total.
         return false;
     }
 
-    hideDiffHeader(diff)
-    {
-        diff.rows[0].find(".tetrisColumn").html("&nbsp;");
-        let rightCell = diff.rows[0].find(".diffLineNumbersB:first");
-        rightCell.html("&nbsp;");
-        rightCell.removeClass("tetrisColumn");
-        diff.rows[0].removeClass("cdm-forcedBreak");
-    }
-
-    addDiffHeader(diff)
-    {
-        let id = diff.getId();
-        let isDone = this.isDone(id);
-        let imgHTML = isDone ? this.greenHTML: this.redHTML;
-        diff.rows[0].find(".tetrisColumn").html(`<img ${imgHTML} width="16" height="16" class="${id}"/>`);
-
-        // For side-by-side, add markers also in the right column
-        if (!this.unified) {
-            let rightCell = diff.rows[0].find(".diffLineNumbersB:first");
-            rightCell.html(`<img ${imgHTML} width="16" height="16" class="${id}"/>`);
-            // Make it non-clickable
-            rightCell.addClass("tetrisColumn");
-        }
-
-        if (this.data.breaks.indexOf(id) >= 0) {
-            diff.rows[0].addClass("cdm-forcedBreak");
-        }
-    }
-
-    updateDiff(diff)
-    {
-        this.addDiffHeader(diff);
-        let id = diff.getId();
-        let isDone = this.isDone(id);
-        for (let r = 0; r < diff.rows.length; r++) {
-            let row = diff.rows[r];
-            let elems = row.find("span, .lineContent , .diffContentA , .diffContentB , .diffLineNumbersA , .diffLineNumbersB");
-            if (isDone) {
-                elems.addClass("cdm-hidden");
-            } else {
-                elems.removeClass("cdm-hidden");
-            }
-        }
-
-        $("." + id).click(this.flip.bind(this, diff));
-    }
-
     flip(diff)
     {
         let id = diff.getId();
@@ -567,7 +450,11 @@ ${this.LABEL}: &nbsp; ${total} diffs (${totalLines} lines) in total.
 
         this.initDataSave();
     }
+
+    // Forwards to backend
+    updateDiff(diff) { this.backend.updateDiff(diff); }
+    hideDiffHeader(diff) { this.backend.hideDiffHeader(diff); }
 }
 
-let cdm = new CDM();
-cdm.start();
+let dmcore = new Core();
+dmcore.start();
