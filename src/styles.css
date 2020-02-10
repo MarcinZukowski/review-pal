@@ -53,12 +53,29 @@
 @keyframes cdm-jump-ani{
       0% { opacity: 1.0; }
      50% { opacity: 0.2; }
-    100% { opacity: 1.0; }
+    100% { opacity: 1.0;
+           background-color: red; }
 }
 .cdm-jump {
     animation-name: cdm-jump-ani;
     animation-duration: 500ms;
     animation-fill-mode: forwards;
+/*
+    border-bottom: 5px solid purple !important;
+    border-left: 5px solid purple !important;
+ */
+}
+
+.cdm-jump:after{
+    content: "Current diff    ";
+    display: block;
+    position: absolute; right: 0px;
+    width: 100%;
+    border: 3px solid #ffa50080;
+    font-style: italic;
+    font-size: smaller;
+    text-align: right;
+    pointer-events: none;
 }
 
 .cdm-tools {
