@@ -48,11 +48,11 @@ class Core
         }
     }
 
-    findDiffWith(left, right)
+    findDiffWith(diffLine)
     {
         for (let d = 0; d < this.diffs.length; d++) {
             let diff = this.diffs[d];
-            if (diff.includes(left, right)) {
+            if (diff.includesLine(diffLine)) {
                 return diff;
             }
         }
@@ -74,11 +74,11 @@ class Core
             return true;
         }
 
-        let [left, right] = this.backend.getRowRanges(row);
-        let rowId = this.backend.createRowId(row);
+        let diffLine = this.backend.createDiffLine(row);
+        let rowId = diffLine.id;
 
         // Find its diff
-        let diff = this.findDiffWith(left, right);
+        let diff = this.findDiffWith(diffLine);
 
         // Always mark the break as not done
         this.setDone(rowId, false);

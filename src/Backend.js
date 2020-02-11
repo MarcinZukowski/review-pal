@@ -115,7 +115,8 @@ class CrucibleBackend
                 // Ignore comments
                 continue;
             }
-            let isBreak = dmcore.data.breaks.indexOf(DiffBlock.getRowId(row)) >= 0;
+            let diffLine = parent.createDiffLine(row);
+            let isBreak = dmcore.data.breaks.indexOf(diffLine.id) >= 0;
             let isDiff = row.hasClass("is-diff");
             if (!isDiff || isBreak) {
                 // Possibly an end of a diff
@@ -247,22 +248,18 @@ class GitHubBackend
         return [left, right];
     }
 
-
     analyzeDiffs()
     {
-
-        // Clean previously set breaks
-//        $(".cdm-forcedBreak").removeClass("cdm-forcedBreak");
-
-//        this.unified = this.isUnified();
-
-        let hunks = $("[data-hunk]");
+        dmcore.diffs = [];
+        let diff = null;
+        let parent = this;
 
         let func = function(index, row) {
             let lval = row.cells[1];
             let rval = row.cells[3];
-            let tag = $(row).attr("data-hunk");
-            let isBreak = dmcore.data.breaks.indexOf(DiffBlock.getRowId(row, tag)) >= 0;
+
+            let diffLine = parent.createDiffLine(row);
+            let isBreak = dmcore.data.breaks.indexOf(diffLine.id) >= 0;
             let isDiff = $(lval).hasClass("blob-code-deletion")
                 || $(rval).hasClass("blob-code-addition");
 
@@ -278,16 +275,13 @@ class GitHubBackend
             if (isDiff) {
                 if (!diff) {
                     // New diff
-                    diff = new DiffBlock(tag);
+                    diff = new DiffBlock(diffLine.tag);
                 }
                 // Update diff
-                diff.addRow(row);
+                diff.addLine(diffLine);
             }
         };
-
-        dmcore.diffs = [];
-        let diff = null;
-
+        let hunks = $("[data-hunk]");
         hunks.each(func);
 
         console.log(dmcore.diffs);
@@ -299,8 +293,8 @@ class GitHubBackend
         this.addDiffHeader(diff);
         let id = diff.getId();
         let isDone = dmcore.isDone(id);
-        for (let r = 0; r < diff.rows.length; r++) {
-            let row = $(diff.rows[r]);
+        for (let r = 0; r < diff.lines.length; r++) {
+            let row = $(diff.lines[r].row);
             let elems = row.find("span, .lineContent , .diffContentA , .diffContentB , .diffLineNumbersA , .diffLineNumbersB");
             if (isDone) {
                 elems.addClass("cdm-hidden");
@@ -314,8 +308,8 @@ class GitHubBackend
 
     hideDiffHeader(diff)
     {
-        $(diff.rows[0]).find(".js-linkable-line-number").html("");
-        $(diff.rows[0]).find(".cdm-forcedBreak").removeClass("cdm-forcedBreak");
+        $(diff.lines[0].row).find(".js-linkable-line-number").html("");
+        $(diff.lines[0].row).find(".cdm-forcedBreak").removeClass("cdm-forcedBreak");
     }
 
     addDiffHeader(diff)
@@ -323,12 +317,16 @@ class GitHubBackend
         let id = diff.getId();
         let isDone = dmcore.isDone(id);
         let imgHTML = isDone ? dmcore.greenHTML: dmcore.redHTML;
-        $(diff.rows[0])
+        $(diff.lines[0].row)
             .find(".js-linkable-line-number")
-            .html(`<img ${imgHTML} width="16" height="16" class="${id}"/>`);
+            .html(`
+<img ${imgHTML} width="20" height="20" class="${id}"
+style="position: relative; top: 0px; right: 20px; opacity: 80%; background-color: white"
+/>
+`);
 
         if (dmcore.data.breaks.indexOf(id) >= 0) {
-            $(diff.rows[0]).find("td").addClass("cdm-forcedBreak");
+            $(diff.lines[0].row).find("td").addClass("cdm-forcedBreak");
         }
     }
 
@@ -346,20 +344,11 @@ class GitHubBackend
         return target.parents("tr").get()[0];
     }
 
-    /** Return [isDiff, left, right] */
-    getMiddleClickInfo(target)
-    {
-        let row = getParentRow(target);
-        let [left, right] = this.getRowRanges(row);
-        return [true, left, right];
-    }
-
-    createRowId(row)
+    createDiffLine(row)
     {
         let tag = $(row).attr("data-hunk");
         let left = Number($(row.cells[0]).attr("data-line-number")) || 0;
         let right = Number($(row.cells[2]).attr("data-line-number")) || 0;
-        return DiffBlock.createId(left, right, tag);
+        return new DiffLine(tag, left, right, row);
     }
-
 }

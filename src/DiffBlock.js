@@ -8,24 +8,25 @@ class DiffBlock
         this.left_to = 0;
         this.right_from = 0;
         this.right_to = 0;
-        this.rows = [];
+        this.lines = [];
     }
 
-    addRow(row)
+    addLine(line)
     {
-        let [left, right] = dmcore.backend.getRowRanges(row);
+        let left = line.left;
+        let right = line.right;
         this.left_from = this.left_from || left;
         this.left_to = left || this.left_to;
 
         this.right_from = this.right_from || right;
         this.right_to = right || this.right_to;
 
-        this.rows.push(row);
+        this.lines.push(line);
     }
 
     getId()
     {
-        return DiffBlock.createId(this.left_from, this.right_from, this.tag);
+        return DiffLine.createId(this.left_from, this.right_from, this.tag);
     }
 
     toString()
@@ -33,26 +34,15 @@ class DiffBlock
         return `Diff( left: ${this.left_from}-${this.left_to} right: ${this.right_from}-${this.right_to} tag: ${this.tag})`;
     }
 
-    // Does this diff include a given row (based on its left-right row ranges)
-    includes(left, right)
+    // Does this diff include a given line (based on its tag and left-right row ranges)
+    includesLine(diffLine)
     {
         function helper(nr, from, to) {
             return nr === 0 || (from > 0 && nr >= from && nr <= to);
         }
-        return helper(left, this.left_from, this.left_to) && helper(right, this.right_from, this.right_to);
-    }
-
-    static createId(left, right, tag)
-    {
-        tag = tag || "";
-        return `diff_${tag}_${left}_${right}`;
-    }
-
-    static getRowId(row, tag)
-    {
-        tag = tag || "";
-        let [left, right] = dmcore.backend.getRowRanges(row);
-        return DiffBlock.createId(left, right, tag);
+        return this.tag === diffLine.tag
+            && helper(diffLine.left, this.left_from, this.left_to)
+            && helper(diffLine.right, this.right_from, this.right_to);
     }
 
     getNumLines()

@@ -20,7 +20,8 @@
       "3rd/jquery-3.3.1.slim.min.js",
       "Backend.js",
       "Core.js",
-      "SingleDiff.js"
+      "DiffBlock.js",
+      "DiffLine.js"
     ],
     "matches": ["https://*/fisheye/cru/*", "https://github.com/*/pull/*/files"]
   }]
