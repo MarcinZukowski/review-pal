@@ -13,9 +13,9 @@ class Core
 
         console.log(window.location.href);
         if (window.location.href.search("github") >= 0) {
-            this.backend = new GitHubBackend();
+            this.backend = new BackendGitHub();
         } else {
-            this.backend = new CrucibleBackend();
+            this.backend = new BackendCrucible();
         }
     }
 

@@ -18,7 +18,8 @@
     "css": ["styles.css"],
     "js": [
       "3rd/jquery-3.3.1.slim.min.js",
-      "Backend.js",
+      "BackendCrucible.js",
+      "BackendGitHub.js",
       "Core.js",
       "DiffBlock.js",
       "DiffLine.js"
