@@ -1,14 +1,16 @@
-/* A single diff data */
-class SingleDiff
+/* A single block of diff data */
+class DiffBlock
 {
-    constructor()
+    constructor(tag)
     {
+        this.tag = tag || "";
         this.left_from = 0;
         this.left_to = 0;
         this.right_from = 0;
         this.right_to = 0;
         this.rows = [];
     }
+
     addRow(row)
     {
         let [left, right] = dmcore.backend.getRowRanges(row);
@@ -20,13 +22,15 @@ class SingleDiff
 
         this.rows.push(row);
     }
+
     getId()
     {
-        return SingleDiff.createId(this.left_from, this.right_from);
+        return DiffBlock.createId(this.left_from, this.right_from, this.tag);
     }
+
     toString()
     {
-        return `Diff( left: ${this.left_from}-${this.left_to} right: ${this.right_from}-${this.right_to} )`;
+        return `Diff( left: ${this.left_from}-${this.left_to} right: ${this.right_from}-${this.right_to} tag: ${this.tag})`;
     }
 
     // Does this diff include a given row (based on its left-right row ranges)
@@ -38,15 +42,19 @@ class SingleDiff
         return helper(left, this.left_from, this.left_to) && helper(right, this.right_from, this.right_to);
     }
 
-    static createId(left, right)
+    static createId(left, right, tag)
     {
-        return `diff_${left}_${right}`;
+        tag = tag || "";
+        return `diff_${tag}_${left}_${right}`;
     }
-    static getRowId(row)
+
+    static getRowId(row, tag)
     {
+        tag = tag || "";
         let [left, right] = dmcore.backend.getRowRanges(row);
-        return SingleDiff.createId(left, right);
+        return DiffBlock.createId(left, right, tag);
     }
+
     getNumLines()
     {
         return (this.left_from  > 0 ? 1 + this.left_to  - this.left_from  : 0)

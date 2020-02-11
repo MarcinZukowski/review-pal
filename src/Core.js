@@ -1,11 +1,7 @@
 /* Main class */
 class Core
 {
-    DIFF_DATA_MAX_ATTEMPTS = 30;
-    DIFF_DATA_ATTEMPTS_DELAY_MS = 1000;
     LABEL = `<a class="cdm-label" href="https://github.com/MarcinZukowski/crucible-diff-marker">CrucibleDiffMarker</a>`;
-
-    backend = new CrucibleBackend();
 
     constructor()
     {
@@ -15,7 +11,12 @@ class Core
         this.redHTML = `src="${redUrl}" alt="(_)" `;
         this.greenHTML = `src="${greenUrl}" alt="(X)" `;
 
-//        this.middleClick = this.middleClick.bind(this);
+        console.log(window.location.href);
+        if (window.location.href.search("github") >= 0) {
+            this.backend = new GitHubBackend();
+        } else {
+            this.backend = new CrucibleBackend();
+        }
     }
 
     start()
@@ -67,14 +68,14 @@ class Core
             return true;
         }
 
-        let [isDiff, left, right] = this.backend.getMiddleClickInfo(target);
-
-        // Only handle diff lines
-        if (! isDiff) {
+        // Check if it's a diff row
+        let row = this.backend.getParentRow(target);
+        if (! row) {
             return true;
         }
 
-        let rowId = SingleDiff.createId(left, right);
+        let [left, right] = this.backend.getRowRanges(row);
+        let rowId = this.backend.createRowId(row);
 
         // Find its diff
         let diff = this.findDiffWith(left, right);
@@ -116,20 +117,22 @@ class Core
 
         this.cleanData();
 
-        let hash = window.location.hash;
-        console.log("hashchanged: " + hash);
-        if (!hash.startsWith("#CFR")) {
-            console.log("No #CFR, exiting");
+        this.id = null;
+
+        this.backend.deriveId();
+
+        if (this.id === null) {
+            console.log("Can't derive change id, exiting");
             return;
         }
 
+        console.log(`Using id: ${this.id}`);
+
         // Prepare some identifiers
-        let id = hash.substr(5);
-        this.id = id;
-        this.barId = "cdm-bar-" + id;
-        this.statsId = "cdm-stats-" + id;
-        this.messageId = "cdm-message-" + id;
-        this.counterId = "cdm-counter-" + id;
+        this.barId = "cdm-bar-" + this.id;
+        this.statsId = "cdm-stats-" + this.id;
+        this.messageId = "cdm-message-" + this.id;
+        this.counterId = "cdm-counter-" + this.id;
 
         this.initBar();
 
@@ -142,13 +145,9 @@ class Core
         let bar = $("#"+this.barId);
         if (bar.length === 0) {
             // Create a new bar
-            let fci = $("#frx-context-info-" + this.id);
-            if (fci.length === 0) {
-                console.error("Can't find frx-context-info");
-                return;
-            }
-            fci.after(`
-<div class="cdm-bar" id="${this.barId}">
+            this.backend.initBar();
+            let bar = $("#"+this.barId);
+            bar.html(`
 <span class="cdm-stats" id="${this.statsId}">${this.LABEL}</span>
 <span class="cdm-tools"">
     
@@ -156,31 +155,11 @@ class Core
       <span class="cdm-button cdm-setAll"><img ${this.greenHTML} width="20" height="20"/> Mark all done</span>
 </span>
 <span class="cdm-message" id="${this.messageId}"></span>
-</div>
 `);
-            bar = $("#"+this.barId);
-
             $("span.cdm-button").click(this.buttonPressed.bind(this));
         }
         this.bar = bar;
     }
-
-    initCounter()
-    {
-        let counter = $("#"+this.counterId);
-        if (counter.length === 0) {
-            // Create a new counter
-            let fcc = $("#frxCommentCount" + this.id);
-            if (fcc.length === 0) {
-                console.error("Can't find frx-comment-count");
-                return;
-            }
-            fcc.after(`<span id="${this.counterId}" class="aui-badge cdm-counter"></span>`);
-            counter = $("#"+this.counterId);
-        }
-        this.counter = counter;
-    }
-
 
     buttonPressed(event)
     {
@@ -227,7 +206,6 @@ class Core
         $("#frxouter" + this.id).on("DOMNodeInserted", this.nodeInserted.bind(this));
 
 
-        this.waitDiffAttempts = 0;
         this.waitForDiff();
     }
 
@@ -274,20 +252,12 @@ class Core
 
     waitForDiff()
     {
-        this.waitDiffAttempts++;
+        this.backend.waitForDiff(this.diffReady.bind(this));
+    }
 
-        let diffStart = $("#diffStart" + this.id);
-        if (diffStart.length === 0) {
-            if (this.waitDiffAttempts >= this.DIFF_DATA_MAX_ATTEMPTS) {
-                this.message("Can't find diff data");
-                return;
-            }
-            this.message(`Waiting for diff data, attempt ${this.waitDiffAttempts}`);
-            window.setTimeout(this.waitForDiff.bind(this), this.DIFF_DATA_ATTEMPTS_DELAY_MS);
-            return;
-        }
+    diffReady()
+    {
         this.message("Diff data ready, analyzing");
-
         this.analyzeDiffs();
     }
 
@@ -297,46 +267,9 @@ class Core
             // Sometimes we get here when the data is not ready yet.
             return;
         }
-        this.backend.unified = this.backend.isUnified();
 
-        // Clean previously set breaks
-//        $(".cdm-forcedBreak").removeClass("cdm-forcedBreak");
+        this.backend.analyzeDiffs();
 
-        let diffStart = $("#diffStart" + this.id);
-
-        // Go over all siblings of diffStart;
-        let row = diffStart;
-        let diff = null;
-        this.diffs = [];
-        while (true) {
-            row = row.next();
-            if (row.length === 0) {
-                break;
-            }
-            if (row.hasClass("comment-row")) {
-                // Ignore comments
-                continue;
-            }
-            let isBreak = this.data.breaks.indexOf(SingleDiff.getRowId(row)) >= 0;
-            let isDiff = row.hasClass("is-diff");
-            if (!isDiff || isBreak) {
-                // Possibly an end of a diff
-                if (diff) {
-                    this.diffs.push(diff);
-                    this.updateDiff(diff);
-                    // Finish diff
-                    diff = null;
-                }
-            }
-            if (isDiff) {
-                if (!diff) {
-                    // New diff
-                    diff = new SingleDiff();
-                }
-                // Update diff
-                diff.addRow(row);
-            }
-        }
         this.message("Diff data analyzed");
         this.updateStats();
     }
@@ -379,10 +312,7 @@ ${this.LABEL}: &nbsp; ${total} diffs (${totalLines} lines) in total.
 `);
 
         // Update the counter on the left
-        this.initCounter();
-        this.counter.html(`${done}/${total}`);
-        this.counter.removeClass("cdm-counter-todo cdm-counter-done");
-        this.counter.addClass(done === total ? "cdm-counter-done" : "cdm-counter-todo");
+        this.backend.updateCounter(done, total);
 
         if (done === total) {
             this.backend.markFileAsReviewed(this.id)

@@ -1,5 +1,13 @@
 class CrucibleBackend
 {
+    DIFF_DATA_MAX_ATTEMPTS = 30;
+    DIFF_DATA_ATTEMPTS_DELAY_MS = 1000;
+
+    constructor()
+    {
+        console.log("Initializing CrucibleBackend");
+    }
+
     /** Return [isDiff, left, right] */
     getMiddleClickInfo(target)
     {
@@ -82,6 +90,276 @@ class CrucibleBackend
     {
         let elem = $(`#view_opts${this.id} .frx-diff-layout-opt`)[0];
         return $(elem).hasClass("selected");
+    }
+
+    analyzeDiffs()
+    {
+
+        // Clean previously set breaks
+//        $(".cdm-forcedBreak").removeClass("cdm-forcedBreak");
+
+        this.unified = this.isUnified();
+
+        let diffStart = $("#diffStart" + dmcore.id);
+
+        // Go over all siblings of diffStart;
+        let row = diffStart;
+        let diff = null;
+        dmcore.diffs = [];
+        while (true) {
+            row = row.next();
+            if (row.length === 0) {
+                break;
+            }
+            if (row.hasClass("comment-row")) {
+                // Ignore comments
+                continue;
+            }
+            let isBreak = dmcore.data.breaks.indexOf(DiffBlock.getRowId(row)) >= 0;
+            let isDiff = row.hasClass("is-diff");
+            if (!isDiff || isBreak) {
+                // Possibly an end of a diff
+                if (diff) {
+                    dmcore.diffs.push(diff);
+                    dmcore.updateDiff(diff);
+                    // Finish diff
+                    diff = null;
+                }
+            }
+            if (isDiff) {
+                if (!diff) {
+                    // New diff
+                    diff = new DiffBlock();
+                }
+                // Update diff
+                diff.addRow(row);
+            }
+        }
+    }
+
+    deriveId()
+    {
+        let hash = window.location.hash;
+        console.log("hashchanged: " + hash);
+        if (!hash.startsWith("#CFR")) {
+            console.log("No #CFR, exiting");
+            return;
+        }
+        dmcore.id = hash.substr(5);
+    }
+
+    initBar()
+    {
+        let fci = $("#frx-context-info-" + dmcore.id);
+        if (fci.length === 0) {
+            console.error("Can't find frx-context-info");
+            return;
+        }
+        console.log("Adding bar");
+        fci.after(`<div class="cdm-bar" id="${dmcore.barId}"/>`);
+    }
+
+    waitForDiffHelper(callback)
+    {
+        this.waitDiffAttempts++;
+
+        let diffStart = $("#diffStart" + dmcore.id);
+        if (diffStart.length === 0) {
+            if (this.waitDiffAttempts >= this.DIFF_DATA_MAX_ATTEMPTS) {
+                dmcore.message("Can't find diff data");
+                return;
+            }
+            dmcore.message(`Waiting for diff data, attempt ${this.waitDiffAttempts}`);
+            window.setTimeout(this.waitForDiffHelper.bind(this, callback), this.DIFF_DATA_ATTEMPTS_DELAY_MS);
+            return;
+        }
+
+        callback();
+    }
+
+    waitForDiff(callback)
+    {
+        this.waitForDiffAttempts = 0;
+        this.waitForDiffHelper(callback);
+    }
+
+    updateCounter(done, total)
+    {
+        let counter = $("#"+dmcore.counterId);
+        if (counter.length === 0) {
+            // Create a new counter
+            let fcc = $("#frxCommentCount" + dmcore.id);
+            if (fcc.length === 0) {
+                console.error("Can't find frx-comment-count");
+                return;
+            }
+            fcc.after(`<span id="${this.counterId}" class="aui-badge cdm-counter"></span>`);
+            counter = $("#"+dmcore.counterId);
+        }
+
+        counter.html(`${done}/${total}`);
+        counter.removeClass("cdm-counter-todo cdm-counter-done");
+        counter.addClass(done === total ? "cdm-counter-done" : "cdm-counter-todo");
+
+    }
+
+
+}
+
+class GitHubBackend
+{
+    constructor()
+    {
+        console.log("Initializing GitHubBackend");
+    }
+
+    deriveId()
+    {
+        let href = window.location.href;
+        let m = href.match(/pull\/(.*)\/files/);
+        if (!m) {
+            console.log("No id, exiting");
+            return;
+        }
+        dmcore.id = m[1];
+    }
+
+    initBar()
+    {
+        let tb = $(".pr-toolbar");
+        if (tb.length === 0) {
+            console.error("Can't find pr-toolbar");
+            return;
+        }
+        console.log("Adding bar");
+        tb.append(`<div class="cdm-bar" id="${dmcore.barId}"/><br/>`);
+    }
+
+    waitForDiff(callback)
+    {
+        callback();
+    }
+
+    getRowRanges(row)
+    {
+        let left = Number($(row.cells[0]).attr("data-line-number")) || 0;
+        let right = Number($(row.cells[2]).attr("data-line-number")) || 0;
+        return [left, right];
+    }
+
+
+    analyzeDiffs()
+    {
+
+        // Clean previously set breaks
+//        $(".cdm-forcedBreak").removeClass("cdm-forcedBreak");
+
+//        this.unified = this.isUnified();
+
+        let hunks = $("[data-hunk]");
+
+        let func = function(index, row) {
+            let lval = row.cells[1];
+            let rval = row.cells[3];
+            let tag = $(row).attr("data-hunk");
+            let isBreak = dmcore.data.breaks.indexOf(DiffBlock.getRowId(row, tag)) >= 0;
+            let isDiff = $(lval).hasClass("blob-code-deletion")
+                || $(rval).hasClass("blob-code-addition");
+
+            if (!isDiff || isBreak) {
+                // Possibly an end of a diff
+                if (diff) {
+                    dmcore.diffs.push(diff);
+                    dmcore.updateDiff(diff);
+                    // Finish diff
+                    diff = null;
+                }
+            }
+            if (isDiff) {
+                if (!diff) {
+                    // New diff
+                    diff = new DiffBlock(tag);
+                }
+                // Update diff
+                diff.addRow(row);
+            }
+        };
+
+        dmcore.diffs = [];
+        let diff = null;
+
+        hunks.each(func);
+
+        console.log(dmcore.diffs);
+        return;
+    }
+
+    updateDiff(diff)
+    {
+        this.addDiffHeader(diff);
+        let id = diff.getId();
+        let isDone = dmcore.isDone(id);
+        for (let r = 0; r < diff.rows.length; r++) {
+            let row = $(diff.rows[r]);
+            let elems = row.find("span, .lineContent , .diffContentA , .diffContentB , .diffLineNumbersA , .diffLineNumbersB");
+            if (isDone) {
+                elems.addClass("cdm-hidden");
+            } else {
+                elems.removeClass("cdm-hidden");
+            }
+        }
+
+        $("." + id).on("click", dmcore.flip.bind(dmcore, diff));
+    }
+
+    hideDiffHeader(diff)
+    {
+        $(diff.rows[0]).find(".js-linkable-line-number").html("");
+        $(diff.rows[0]).find(".cdm-forcedBreak").removeClass("cdm-forcedBreak");
+    }
+
+    addDiffHeader(diff)
+    {
+        let id = diff.getId();
+        let isDone = dmcore.isDone(id);
+        let imgHTML = isDone ? dmcore.greenHTML: dmcore.redHTML;
+        $(diff.rows[0])
+            .find(".js-linkable-line-number")
+            .html(`<img ${imgHTML} width="16" height="16" class="${id}"/>`);
+
+        if (dmcore.data.breaks.indexOf(id) >= 0) {
+            $(diff.rows[0]).find("td").addClass("cdm-forcedBreak");
+        }
+    }
+
+    updateCounter(done, total)
+    {
+    }
+
+    getParentRow(target)
+    {
+        if (target.parents("[data-hunk]").length === 0) {
+            return null;
+        }
+
+        // Find parent TR
+        return target.parents("tr").get()[0];
+    }
+
+    /** Return [isDiff, left, right] */
+    getMiddleClickInfo(target)
+    {
+        let row = getParentRow(target);
+        let [left, right] = this.getRowRanges(row);
+        return [true, left, right];
+    }
+
+    createRowId(row)
+    {
+        let tag = $(row).attr("data-hunk");
+        let left = Number($(row.cells[0]).attr("data-line-number")) || 0;
+        let right = Number($(row.cells[2]).attr("data-line-number")) || 0;
+        return DiffBlock.createId(left, right, tag);
     }
 
 }
