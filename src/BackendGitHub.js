@@ -117,13 +117,13 @@ class BackendGitHub
         let diff = null;
         let parent = this;
 
-        let func = function(index, row) {
-
+        let perHunk = function(index, row) {
             let diffLine = parent.createDiffLine(row);
             let isBreak = dmcore.data.breaks.indexOf(diffLine.id) >= 0;
             let isDiff = parent.isDiff(row);
+            let first = (index === 0);
 
-            if (!isDiff || isBreak) {
+            if (!isDiff || isBreak || first) {
                 // Possibly an end of a diff
                 if (diff) {
                     dmcore.diffs.push(diff);
@@ -141,8 +141,14 @@ class BackendGitHub
                 diff.addLine(diffLine);
             }
         };
-        let hunks = $("[data-hunk]");
-        hunks.each(func);
+
+        let perFile = function(index, row) {
+            let hunks = $(row).find("[data-hunk]");
+            hunks.each(perHunk);
+        };
+
+        let files = $(".file");
+        files.each(perFile);
 
         console.log(dmcore.diffs);
     }
