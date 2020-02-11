@@ -56,7 +56,7 @@ class Core
                 return diff;
             }
         }
-        console.error(`Can't find row for ${left}_${right}, diffs=${this.diffs}`);
+        console.error(`Can't find row for ${diffLine}, diffs=${this.diffs}`);
     }
 
     middleClick(ev)
@@ -106,7 +106,7 @@ class Core
         }
         this.analyzeDiffs();
         this.message(msg);
-        this.initDataSave(false)
+        this.initDataSave(false);
     }
 
     hashChanged()
@@ -146,24 +146,16 @@ class Core
         if (bar.length === 0) {
             // Create a new bar
             this.backend.initBar();
-            let bar = $("#"+this.barId);
-            bar.html(`
-<span class="cdm-stats" id="${this.statsId}">${this.LABEL}</span>
-<span class="cdm-tools"">
-    
-      <span class="cdm-button cdm-clearAll"><img ${this.redHTML} width="20" height="20"/>Clear all</span>
-      <span class="cdm-button cdm-setAll"><img ${this.greenHTML} width="20" height="20"/> Mark all done</span>
-</span>
-<span class="cdm-message" id="${this.messageId}"></span>
-`);
-            $("span.cdm-button").click(this.buttonPressed.bind(this));
         }
-        this.bar = bar;
     }
 
     buttonPressed(event)
     {
         let target = event.delegateTarget;
+        if ($(target).hasClass("cdm-reset")) {
+            this.initReset();
+            return;
+        }
         let set = $(target).hasClass("cdm-setAll");
         for (let i = 0; i < this.diffs.length; i++) {
             let diff = this.diffs[i];
@@ -176,7 +168,21 @@ class Core
 
     initDataLoad()
     {
+        console.log("initializing data load");
         chrome.storage.local.get([this.dataKey], this.dataLoaded.bind(this));
+    }
+
+    initReset()
+    {
+        console.log("resetting data");
+        chrome.storage.local.remove([this.dataKey], this.resetComplete.bind(this));
+    }
+
+    resetComplete()
+    {
+        this.message("DATA CLEANED!");
+        //this.hashChanged();
+        this.initDataLoad();
     }
 
     cleanData()
@@ -202,20 +208,7 @@ class Core
             this.data.breaks = [];
         }
 
-        // Detect node changes to be able to re-render our stuff
-        $("#frxouter" + this.id).on("DOMNodeInserted", this.nodeInserted.bind(this));
-
-
         this.waitForDiff();
-    }
-
-    nodeInserted(ev)
-    {
-        // this element seems to be the last one inserted
-        if ($(ev.target).hasClass("floating-scrollbar")) {
-            this.initBar();
-            this.analyzeDiffs();
-        }
     }
 
     initDataSave(print = true)
@@ -297,19 +290,7 @@ class Core
         }
         let todoLines = totalLines - doneLines;
 
-        $("#" + this.statsId).html(`
-${this.LABEL}: &nbsp; ${total} diffs (${totalLines} lines) in total. 
-&nbsp;&nbsp;
-  <span class="cdm-stats-text cdm-stats-done">
-    <img ${this.greenHTML} width="16" height="16"/>
-    ${done} diffs (${doneLines} lines) done.
-  </span>
-&nbsp;&nbsp;
-  <span class="cdm-stats-text cdm-stats-todo">
-    <img ${this.redHTML} width="16" height="16"/> 
-    ${todo} diffs (${todoLines} lines) to do.
-  </span>
-`);
+        this.backend.updateStats(total, totalLines, done, doneLines, todo, todoLines);
 
         // Update the counter on the left
         this.backend.updateCounter(done, total);
@@ -318,8 +299,8 @@ ${this.LABEL}: &nbsp; ${total} diffs (${totalLines} lines) in total.
             this.backend.markFileAsReviewed(this.id)
         }
 
-        $(".cdm-stats-todo").click(this.gotoNext.bind(this, false));
-        $(".cdm-stats-done").click(this.gotoNext.bind(this, true));
+        $(".cdm-stats-todo").on("click", this.gotoNext.bind(this, false));
+        $(".cdm-stats-done").on("click", this.gotoNext.bind(this, true));
     }
 
     /**
@@ -329,12 +310,13 @@ ${this.LABEL}: &nbsp; ${total} diffs (${totalLines} lines) in total.
      */
     gotoNext(shouldBeDone)
     {
-        $(".cdm-jump").removeClass("cdm-jump");
+        let cls = this.backend.CLASS_JUMP;
+        $(`.${cls}`).removeClass(cls);
 
         let startIdx = this.lastFoundDiffIdx;
 
-        let container = $("#sourceTable" + this.id);
-        let containerOffset = container.offset().top - container.scrollTop();
+        let containerOffset = this.backend.getDiffContainerOffset();
+
         let currentTop = $(window).scrollTop();
         let foundDiff = null;
         let foundTop = 0;
@@ -343,7 +325,7 @@ ${this.LABEL}: &nbsp; ${total} diffs (${totalLines} lines) in total.
             let idx = (d + startIdx) % count;
             let diff = this.diffs[idx];
             if (shouldBeDone === undefined || this.isDone(diff.getId()) === shouldBeDone) {
-                let top = diff.rows[0].offset().top - containerOffset;
+                let top = $(diff.lines[0].row).offset().top - containerOffset;
                 // Accept first matching row, or first matching after the current window position.
                 if (foundDiff === null || top > currentTop) {
                     foundDiff = diff ;
@@ -362,7 +344,7 @@ ${this.LABEL}: &nbsp; ${total} diffs (${totalLines} lines) in total.
             let currTop = $(window).scrollTop();
             this.message(`Scrolling to ${foundDiff.getId()} (${prevTop} -> ${foundTop} -> ${currTop})`);
             // Add animation and removal of it after it's done
-            foundDiff.rows[0].addClass("cdm-jump");
+            $(foundDiff.lines[0].row).addClass(cls);
 //            window.setTimeout(function() { this.removeClass("cdm-jump"); }.bind(foundDiff.rows[0]), 500);
         } else {
             this.message(`No ${shouldBeDone? "" : "un"}reviewed diffs!`);

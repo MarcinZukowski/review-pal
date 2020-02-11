@@ -1,5 +1,9 @@
 class BackendGitHub
 {
+    CLASS_JUMP = "cdm-jump-github";
+    // #ms before we start analyzing diffs
+    WAIT_DELAY = 500;
+
     constructor()
     {
         console.log("Initializing BackendGitHub");
@@ -24,12 +28,72 @@ class BackendGitHub
             return;
         }
         console.log("Adding bar");
-        tb.append(`<div class="cdm-bar" id="${dmcore.barId}"/><br/>`);
+        tb.append(`<div class="cdm-bar cdm-bar-github" id="${dmcore.barId}"/><br/>`);
+
+        let bar = $("#"+dmcore.barId);
+        bar.html(`
+<span class="cdm-stats-github" id="${dmcore.statsId}">${dmcore.LABEL}</span>
+<span class="cdm-button cdm-reset">reset</span>
+<div class="cdm-message-github" id="${dmcore.messageId}"></div>
+`);
+        $("span.cdm-button").on("click", dmcore.buttonPressed.bind(dmcore));
+    }
+
+    updateStats(total, totalLines, done, doneLines, todo, todoLines)
+    {
+        $("#" + dmcore.statsId).html(`
+<table class="cdm-stats-table">
+<tr>
+    <th>Total:</th>
+    <td>${total} diffs</td>
+    <td>${totalLines} lines</td>
+    <th>${dmcore.LABEL}</th>
+</tr>
+<tr style="background-color: #ccffcc">
+    <th class="cdm-stats-done">Done</th>
+    <td class="cdm-stats-text cdm-stats-done">${done} diffs</td>
+    <td class="cdm-stats-text cdm-stats-done">${doneLines} lines</td>
+    <th>
+         <span class="cdm-button cdm-setAll" style="float-right"><img ${dmcore.greenHTML} width="20" height="20"/> Mark all done</span>
+    </th>
+</tr>
+<tr style="background-color: #ffcccc">
+    <th class="cdm-stats-todo">To do</th>
+    <td class="cdm-stats-text cdm-stats-todo">${todo} diffs</td>
+    <td class="cdm-stats-text cdm-stats-todo">${todoLines} lines</td>
+    <th>
+      <span class="cdm-button cdm-clearAll" style="float-right"><img ${dmcore.redHTML} width="20" height="20"/>Clear all</span>
+    </th>
+</tr>
+</table>
+`);
+
+        $("span.cdm-button").off("click");
+        $("span.cdm-button").on("click", dmcore.buttonPressed.bind(dmcore));
     }
 
     waitForDiff(callback)
     {
-        callback();
+        dmcore.message("Waiting for data");
+        this.waitCallback = callback;
+        this.scheduledCall = setTimeout(this.waitForDiffDone.bind(this), this.WAIT_DELAY);
+    }
+
+    waitForDiffDone()
+    {
+        $("#files").on("DOMNodeInserted", this.nodeInserted.bind(this));
+
+        this.waitCallback();
+    }
+
+    nodeInserted(ev)
+    {
+        // this element seems to be the last one inserted
+        if ($(ev.target).hasClass("js-diff-progressive-container")) {
+            dmcore.message("Data incoming");
+            clearTimeout(this.scheduledCall);
+            this.scheduledCall = setTimeout(this.waitForDiffDone.bind(this), this.WAIT_DELAY);
+        }
     }
 
     getRowRanges(row)
@@ -81,7 +145,6 @@ class BackendGitHub
         hunks.each(func);
 
         console.log(dmcore.diffs);
-        return;
     }
 
     updateDiff(diff)
@@ -117,7 +180,7 @@ class BackendGitHub
             .find(".js-linkable-line-number")
             .html(`
 <img ${imgHTML} width="20" height="20" class="${id}"
-style="position: relative; top: 0px; right: 20px; opacity: 80%; background-color: white"
+style="position: relative; top: 0; right: 20px; opacity: 80%; background-color: white"
 />
 `);
 
@@ -150,5 +213,12 @@ style="position: relative; top: 0px; right: 20px; opacity: 80%; background-color
         let left = Number($(row.cells[0]).attr("data-line-number")) || 0;
         let right = Number($(row.cells[2]).attr("data-line-number")) || 0;
         return new DiffLine(tag, left, right, row);
+    }
+
+    getDiffContainerOffset()
+    {
+        let container = $("#files");
+        let containerOffset = container.offset().top - container.scrollTop();
+        return containerOffset;
     }
 }

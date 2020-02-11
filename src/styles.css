@@ -10,9 +10,21 @@
     padding: 3px;
 }
 
+.cdm-bar-github {
+    position: absolute;
+    top: 0px;
+    left: 50%;
+    width: 400px;
+    height: auto;
+}
+
 .cdm-stats {
     float: left;
     width: 35%;
+}
+
+.cdm-stats-github {
+    width: 100%;
 }
 
 @keyframes cdm-message-ani{
@@ -38,10 +50,28 @@
     width: 35%;
 }
 
+.cdm-message-github {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .cdm-message-text {
     animation-name: cdm-message-ani;
     animation-duration: 2000ms;
     animation-fill-mode: forwards;
+}
+
+.cdm-stats-table {
+    width: 100%;
+}
+.cdm-stats-table th {
+    text-align: right;
+    padding-left: 10px;
+}
+
+.cdm-stats-table td  {
+    padding-left: 10px;
 }
 
 .cdm-stats-text {
@@ -77,6 +107,18 @@
     text-align: right;
     pointer-events: none;
 }
+
+.cdm-jump-github {
+    animation-name: cdm-jump-ani;
+    animation-duration: 500ms;
+    animation-fill-mode: forwards;
+}
+
+.cdm-jump-github td {
+    border-top: 3px solid #ffa50080;
+    border-bottom: 3px solid #ffa50080;
+}
+
 
 .cdm-tools {
     width: 30%
@@ -130,4 +172,10 @@ a.cdm-label:link {
 
 .cdm-forcedBreak {
     border-top: 2px dashed gray;
+}
+
+.cdm-reset {
+    float: right;
+    font-size: 10px;
+    height: 16px;
 }

@@ -14,6 +14,6 @@ class DiffLine
     static createId(left, right, tag)
     {
         tag = tag || "";
-        return `diff_${tag}_${left}_${right}`;
+        return `diff_${left}_${right}_${tag}`;
     }
 }

@@ -3,6 +3,8 @@ class BackendCrucible
     DIFF_DATA_MAX_ATTEMPTS = 30;
     DIFF_DATA_ATTEMPTS_DELAY_MS = 1000;
 
+    CLASS_JUMP = "cdm-jump";
+
     constructor()
     {
         console.log("Initializing BackendCrucible");
@@ -146,13 +148,26 @@ class BackendCrucible
 
     initBar()
     {
+        console.log("Adding bar");
         let fci = $("#frx-context-info-" + dmcore.id);
         if (fci.length === 0) {
             console.error("Can't find frx-context-info");
             return;
         }
-        console.log("Adding bar");
         fci.after(`<div class="cdm-bar" id="${dmcore.barId}"/>`);
+
+        let bar = $("#"+dmcore.barId);
+        bar.html(`
+<span class="cdm-stats" id="${dmcore.statsId}">${dmcore.LABEL}</span>
+<span class="cdm-tools"">
+    
+      <span class="cdm-button cdm-clearAll"><img ${dmcore.redHTML} width="20" height="20"/>Clear all</span>
+      <span class="cdm-button cdm-setAll"><img ${dmcore.greenHTML} width="20" height="20"/> Mark all done</span>
+</span>
+<span class="cdm-message" id="${dmcore.messageId}"></span>
+`);
+        $("span.cdm-button").click(dmcore.buttonPressed.bind(dmcore));
+
     }
 
     waitForDiffHelper(callback)
@@ -170,6 +185,9 @@ class BackendCrucible
             return;
         }
 
+        // Detect node changes to be able to re-render our stuff
+        $("#frxouter" + dmcore.id).on("DOMNodeInserted", this.nodeInserted.bind(this));
+
         callback();
     }
 
@@ -177,6 +195,16 @@ class BackendCrucible
     {
         this.waitForDiffAttempts = 0;
         this.waitForDiffHelper(callback);
+    }
+
+    nodeInserted(ev)
+    {
+        // this element seems to be the last one inserted
+        console.log(ev.target);
+        if ($(ev.target).hasClass("floating-scrollbar")) {
+            dmcore.initBar();
+            dmcore.analyzeDiffs();
+        }
     }
 
     updateCounter(done, total)
@@ -196,5 +224,29 @@ class BackendCrucible
         counter.html(`${done}/${total}`);
         counter.removeClass("cdm-counter-todo cdm-counter-done");
         counter.addClass(done === total ? "cdm-counter-done" : "cdm-counter-todo");
+    }
+
+    updateStats(total, totalLines, done, doneLines, todo, todoLines)
+    {
+        $("#" + dmcore.statsId).html(`
+${dmcore.LABEL}: &nbsp; ${total} diffs (${totalLines} lines) in total. 
+&nbsp;&nbsp;
+  <span class="cdm-stats-text cdm-stats-done">
+    <img ${dmcore.greenHTML} width="16" height="16"/>
+    ${done} diffs (${doneLines} lines) done.
+  </span>
+&nbsp;&nbsp;
+  <span class="cdm-stats-text cdm-stats-todo">
+    <img ${dmcore.redHTML} width="16" height="16"/> 
+    ${todo} diffs (${todoLines} lines) to do.
+  </span>
+`);
+    }
+
+    getDiffContainerOffset()
+    {
+        let container = $("#sourceTable" + dmcore.id);
+        let containerOffset = container.offset().top - container.scrollTop();
+        return containerOffset;
     }
 }
