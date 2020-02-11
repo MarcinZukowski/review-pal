@@ -112,7 +112,8 @@ class Core
     hashChanged()
     {
         this.href = window.location.href;
-        this.dataKey = "cdm::" + this.href;
+        this.dataKey = "cdm::" + this.backend.generateDataKey();
+        console.log(`Using dataKey: ${this.dataKey}`);
         this.lastFoundDiffIdx = -1;
 
         this.cleanData();

@@ -249,4 +249,9 @@ ${dmcore.LABEL}: &nbsp; ${total} diffs (${totalLines} lines) in total.
         let containerOffset = container.offset().top - container.scrollTop();
         return containerOffset;
     }
+
+    generateDataKey()
+    {
+        return window.location.href;
+    }
 }
