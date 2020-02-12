@@ -118,6 +118,17 @@ class BackendGitHub
         let parent = this;
         let path = null;
 
+        /** Finish diff if needed */
+        function finishDiff()
+        {
+            if (diff) {
+                dmcore.diffs.push(diff);
+                parent.updateDiff(diff, false/*updateFile*/);
+                // Finish diff
+                diff = null;
+            }
+        }
+
         let perHunk = function(index, row) {
             let diffLine = parent.createDiffLine(row);
             let isBreak = dmcore.data.breaks.indexOf(diffLine.id) >= 0;
@@ -125,13 +136,7 @@ class BackendGitHub
             let first = (index === 0);
 
             if (!isDiff || isBreak || first) {
-                // Possibly an end of a diff
-                if (diff) {
-                    dmcore.diffs.push(diff);
-                    parent.updateDiff(diff, false/*updateFile*/);
-                    // Finish diff
-                    diff = null;
-                }
+                finishDiff();
             }
             if (isDiff) {
                 if (!diff) {
@@ -149,6 +154,7 @@ class BackendGitHub
             console.log(`Analyzing ${path}`);
             let hunks = $(row).find("[data-hunk]");
             hunks.each(perHunk);
+            finishDiff();
             parent.updateFile(path);
         };
 
