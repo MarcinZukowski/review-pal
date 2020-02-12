@@ -116,6 +116,7 @@ class BackendGitHub
         dmcore.diffs = [];
         let diff = null;
         let parent = this;
+        let path = null;
 
         let perHunk = function(index, row) {
             let diffLine = parent.createDiffLine(row);
@@ -136,6 +137,7 @@ class BackendGitHub
                 if (!diff) {
                     // New diff
                     diff = new DiffBlock(diffLine.tag);
+                    diff.path = path;
                 }
                 // Update diff
                 diff.addLine(diffLine);
@@ -143,6 +145,8 @@ class BackendGitHub
         };
 
         let perFile = function(index, row) {
+            path = $(row).children().first().attr("data-path");
+            console.log(`Analyzing ${path}`);
             let hunks = $(row).find("[data-hunk]");
             hunks.each(perHunk);
         };
@@ -169,6 +173,34 @@ class BackendGitHub
         }
 
         $("." + id).on("click", dmcore.flip.bind(dmcore, diff));
+
+        // TODO: this is stupid slow, optimize!
+        let path = diff.path;
+        let done = 0, todo=0;
+        // Sum all diffs for this file
+        for (let d = 0; d < dmcore.diffs.length; d++) {
+            let od = dmcore.diffs[d];
+            if (od.path === path) {
+                if (dmcore.isDone(od.getId())) {
+                    done += od.getNumLines();
+                } else {
+                    todo += od.getNumLines();
+                }
+            }
+        }
+        // Find file header
+        let header = $(`[data-path="${path}"]`);
+        header.find(".cdm-github-per-file-stats").remove();
+        let total = done + todo;
+        let stats = jQuery.parseHTML(`
+<span class="cdm-github-per-file-stats" 
+  style="background: linear-gradient(90deg, #4f48 0%, #fff4 ${100 * done / total}%, #f448 100%);"
+>
+Done: ${done} / ${total}
+</span>
+        `);
+        header.find(".file-info").append(stats);
+
     }
 
     hideDiffHeader(diff)

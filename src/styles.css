@@ -179,3 +179,9 @@ a.cdm-label:link {
     font-size: 10px;
     height: 16px;
 }
+
+.cdm-github-per-file-stats {
+    float: right;
+    width: 100px;
+    text-align: center;
+}
