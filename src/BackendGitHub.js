@@ -128,7 +128,7 @@ class BackendGitHub
                 // Possibly an end of a diff
                 if (diff) {
                     dmcore.diffs.push(diff);
-                    dmcore.updateDiff(diff);
+                    parent.updateDiff(diff, false/*updateFile*/);
                     // Finish diff
                     diff = null;
                 }
@@ -149,33 +149,16 @@ class BackendGitHub
             console.log(`Analyzing ${path}`);
             let hunks = $(row).find("[data-hunk]");
             hunks.each(perHunk);
+            parent.updateFile(path);
         };
 
         let files = $(".file");
         files.each(perFile);
-
-        console.log(dmcore.diffs);
     }
 
-    updateDiff(diff)
+    updateFile(path)
     {
-        this.addDiffHeader(diff);
-        let id = diff.getId();
-        let isDone = dmcore.isDone(id);
-        for (let r = 0; r < diff.lines.length; r++) {
-            let row = $(diff.lines[r].row);
-            let elems = row.find("span, .lineContent , .diffContentA , .diffContentB , .diffLineNumbersA , .diffLineNumbersB");
-            if (isDone) {
-                elems.addClass("cdm-hidden");
-            } else {
-                elems.removeClass("cdm-hidden");
-            }
-        }
-
-        $("." + id).on("click", dmcore.flip.bind(dmcore, diff));
-
         // TODO: this is stupid slow, optimize!
-        let path = diff.path;
         let done = 0, todo=0;
         // Sum all diffs for this file
         for (let d = 0; d < dmcore.diffs.length; d++) {
@@ -200,7 +183,28 @@ Done: ${done} / ${total}
 </span>
         `);
         header.find(".file-info").append(stats);
+    }
 
+    updateDiff(diff, updateFile)
+    {
+        updateFile = updateFile ?? true;
+        this.addDiffHeader(diff);
+        let id = diff.getId();
+        let isDone = dmcore.isDone(id);
+        for (let r = 0; r < diff.lines.length; r++) {
+            let row = $(diff.lines[r].row);
+            let elems = row.find("span, .lineContent , .diffContentA , .diffContentB , .diffLineNumbersA , .diffLineNumbersB");
+            if (isDone) {
+                elems.addClass("cdm-hidden");
+            } else {
+                elems.removeClass("cdm-hidden");
+            }
+        }
+
+        $("." + id).on("click", dmcore.flip.bind(dmcore, diff));
+        if (updateFile) {
+            this.updateFile(diff.path);
+        }
     }
 
     hideDiffHeader(diff)
