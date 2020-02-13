@@ -275,4 +275,7 @@ style="position: relative; top: 0; right: 20px; opacity: 80%; background-color: 
         return window.location.href.replace( /(.*\/pull\/\d+\/).*/, "$1");
     }
 
+    markFileAsReviewed(id)
+    {
+    }
 }
