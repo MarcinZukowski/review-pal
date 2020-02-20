@@ -76,6 +76,16 @@ class BackendGitHub
     {
         dmcore.message("Waiting for data");
         this.waitCallback = callback;
+        this.scheduledCall = null;
+        this.scheduleLoadCompletion();
+    }
+
+    scheduleLoadCompletion()
+    {
+        dmcore.message("Data incoming");
+        if (this.scheduledCall) {
+            clearTimeout(this.scheduledCall);
+        }
         this.scheduledCall = setTimeout(this.waitForDiffDone.bind(this), this.WAIT_DELAY);
     }
 
@@ -83,16 +93,22 @@ class BackendGitHub
     {
         $("#files").on("DOMNodeInserted", this.nodeInserted.bind(this));
 
+        $("hide-file-notes-toggle").on("DOMNodeInserted", this.nodeInserted.bind(this));
+        $("[data-hide-on-error]").on("DOMNodeRemovedFromDocument", this.fileLoaded.bind(this));
+
         this.waitCallback();
+    }
+
+    fileLoaded()
+    {
+        this.scheduleLoadCompletion();
     }
 
     nodeInserted(ev)
     {
         // this element seems to be the last one inserted
         if ($(ev.target).hasClass("js-diff-progressive-container")) {
-            dmcore.message("Data incoming");
-            clearTimeout(this.scheduledCall);
-            this.scheduledCall = setTimeout(this.waitForDiffDone.bind(this), this.WAIT_DELAY);
+            this.scheduleLoadCompletion();
         }
     }
 

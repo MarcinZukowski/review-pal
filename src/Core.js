@@ -276,19 +276,22 @@ class Core
 
     updateStats()
     {
-        let total = this.diffs.length;
-        let done = this.data.done.length;
-        let todo = total - done;
-
-        let totalLines = 0, doneLines = 0;
+        let total = 0, done = 0, totalLines = 0, doneLines = 0;
         for (let i = 0; i < this.diffs.length; i++)
         {
-            totalLines += this.diffs[i].getNumLines();
-            if (this.isDone(this.diffs[i].getId()))
-            {
-                doneLines += this.diffs[i].getNumLines();
+            let numLines = this.diffs[i].getNumLines();
+            if (numLines > 0) {
+                // Only update stats if the diff actually has content, as it might
+                // be hidden in the current view.
+                total++;
+                totalLines += numLines;
+                if (this.isDone(this.diffs[i].getId())) {
+                    done++;
+                    doneLines += this.diffs[i].getNumLines();
+                }
             }
         }
+        let todo = total - done;
         let todoLines = totalLines - doneLines;
 
         this.backend.updateStats(total, totalLines, done, doneLines, todo, todoLines);
