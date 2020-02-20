@@ -23,6 +23,10 @@ Crucible and GitHub:
 * Ability to mark all changes as done/not done
 * Statistics
 
+Github notes:
+* Currently it only activates if one opens the `https://github.com/.../pull/<NUMBER>/files` page. 
+  Note that you might need ot reload that page for this to actviate.  
+
 Crucible only:
 * Automatically marking entire-file as reviewed once individual changes are reviewed
 * Works in both unified and side-by-side views
