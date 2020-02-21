@@ -24,6 +24,6 @@
       "DiffBlock.js",
       "DiffLine.js"
     ],
-    "matches": ["https://*/fisheye/cru/*", "https://github.com/*/pull/*/files"]
+    "matches": ["https://*/fisheye/cru/*", "https://github.com/*/pull/*/files*"]
   }]
 }
