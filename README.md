@@ -25,7 +25,13 @@ Crucible and GitHub:
 
 Github notes:
 * Currently it only activates if one opens the `https://github.com/.../pull/<NUMBER>/files` page. 
-  Note that you might need ot reload that page for this to actviate.  
+  Note that you might need ot reload that page for this to activate.  
+* When watching the same PR with a different subset of commits, the same "diff" (same changed lines)
+  might not be recognized as such, as they might have different positions (line numbers) in the file.
+  So e.g. marking a diff as done when reviewing a single commit 
+  might not be reflected in all-commits review.
+* **If someone has an idea how to fix either of the above, please let me know**
+
 
 Crucible only:
 * Automatically marking entire-file as reviewed once individual changes are reviewed
