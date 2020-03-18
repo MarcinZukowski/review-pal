@@ -21,6 +21,8 @@ Crucible and GitHub:
   * How: Click on "X diffs done" or "Y diffs to do" 
 * Local browser persistence
 * Ability to mark all changes as done/not done
+  * in GitHub: per-file and globally
+  * In Crucible: per-file only
 * Statistics
 * Keyboard shortcuts:
   * `shift+K` - next unreviewed diff

@@ -182,6 +182,10 @@ a.cdm-label:link {
 
 .cdm-github-per-file-stats {
     float: right;
-    width: 100px;
-    text-align: center;
+    width: 180px;
+    text-align: left;
+}
+
+.cdm-github-per-file-stats img {
+    vertical-align: middle;
 }

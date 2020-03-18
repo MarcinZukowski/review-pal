@@ -197,14 +197,34 @@ class BackendGitHub
         let header = $(`[data-path="${path}"]`);
         header.find(".cdm-github-per-file-stats").remove();
         let total = done + todo;
+        let idAllDone = "fileSetAllDone_" + path;
+        let idAllClear = "fileSetAllClear_" + path;
         let stats = jQuery.parseHTML(`
 <span class="cdm-github-per-file-stats" 
   style="background: linear-gradient(90deg, #4f48 0%, #fff4 ${100 * done / total}%, #f448 100%);"
 >
+<img ${dmcore.greenHTML} title="Mark all diffs in file as done" width="20" height="20" data-alldone="${path}" />
+<img ${dmcore.redHTML} title="Clear all diffs in file" width="20" height="20" data-allclear="${path}" />
 Done: ${done} / ${total}
 </span>
         `);
         header.find(".file-info").append(stats);
+        $(`[data-alldone="${path}"]`).on("click", this.setAllPerFile.bind(this, path, true));
+        $(`[data-allclear="${path}"]`).on("click", this.setAllPerFile.bind(this, path, false));
+    }
+
+    setAllPerFile(path, set)
+    {
+        for (let d = 0; d < dmcore.diffs.length; d++) {
+            let od = dmcore.diffs[d];
+            if (od.path === path) {
+                dmcore.setDone(od.getId(), set);
+                dmcore.updateDiff(od, true);
+            }
+        }
+        dmcore.updateStats();
+        dmcore.initDataSave();
+
     }
 
     updateDiff(diff, updateFile)
