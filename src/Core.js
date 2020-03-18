@@ -29,11 +29,12 @@ class Core
 
     keyPressed(e)
     {
-        if (!e.shiftKey) {
+        if (!e.shiftKey || e.metaKey || e.altKey) {
             return true;
         }
         if (e.key === "K") {
-            this.gotoNext(undefined);
+            let shouldBeDone = e.ctrlKey ? undefined : false;
+            this.gotoNext(shouldBeDone);
             return true;
         }
         if (e.key === "X") {

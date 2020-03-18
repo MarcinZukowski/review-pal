@@ -22,6 +22,10 @@ Crucible and GitHub:
 * Local browser persistence
 * Ability to mark all changes as done/not done
 * Statistics
+* Keyboard shortcuts:
+  * `shift+K` - next unreviewed diff
+  * `shift+ctrl+K` - next diff
+  * `shift+X`, `shift+ctrl+X` - mark diff reviewed / unreviewed
 
 Github notes:
 * Currently it only activates if one opens the `https://github.com/.../pull/<NUMBER>/files` page. 
