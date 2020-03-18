@@ -12,7 +12,7 @@ class BackendGitHub
     deriveId()
     {
         let href = window.location.href;
-        let m = href.match(/pull\/(.*)\/files/);
+        let m = href.match(/pull\/(.*)\/(files|commits)/);
         if (!m) {
             console.log("No id, exiting");
             return;
