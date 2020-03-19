@@ -32,6 +32,10 @@ class Core
         if (!e.shiftKey || e.metaKey || e.altKey) {
             return true;
         }
+        if (document.activeElement.type === "textarea" || document.activeElement.type === "text") {
+            // Ignore key presses when editing text
+            return true;
+        }
         if (e.key === "K") {
             let shouldBeDone = e.ctrlKey ? undefined : false;
             this.gotoNext(shouldBeDone);
