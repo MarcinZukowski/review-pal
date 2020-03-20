@@ -199,12 +199,13 @@ class BackendGitHub
         let total = done + todo;
         let idAllDone = "fileSetAllDone_" + path;
         let idAllClear = "fileSetAllClear_" + path;
+        let extraClass = (done == total) ? "all-done" : "";
         let stats = jQuery.parseHTML(`
-<span class="cdm-github-per-file-stats" 
+<span class="cdm-github-per-file-stats ${extraClass}" 
   style="background: linear-gradient(90deg, #4f48 0%, #fff4 ${100 * done / total}%, #f448 100%);"
 >
 <img ${dmcore.greenHTML} title="Mark all diffs in file as done" width="20" height="20" data-alldone="${path}" />
-<img ${dmcore.redHTML} title="Clear all diffs in file" width="20" height="20" data-allclear="${path}" />
+<img ${dmcore.redHTML} title="Clear all diffs in file" width="12" height="12" data-allclear="${path}" />
 Done: ${done} / ${total}
 </span>
         `);

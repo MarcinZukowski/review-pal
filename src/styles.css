@@ -184,6 +184,13 @@ a.cdm-label:link {
     float: right;
     width: 180px;
     text-align: left;
+    padding: 2px;
+}
+
+.cdm-github-per-file-stats.all-done {
+    color: #0008;
+    font-style: italic;
+    border: 2px solid green;
 }
 
 .cdm-github-per-file-stats img {
