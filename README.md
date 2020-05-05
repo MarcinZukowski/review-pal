@@ -30,6 +30,7 @@ Crucible and GitHub:
   * `shift+X`, `shift+ctrl+X` - mark diff reviewed / unreviewed
 
 Github notes:
+* Only works in split view currently.
 * Currently it only activates if one opens the `https://github.com/.../pull/<NUMBER>/files` page. 
   Note that you might need ot reload that page for this to activate.  
 * When watching the same PR with a different subset of commits, the same "diff" (same changed lines)
