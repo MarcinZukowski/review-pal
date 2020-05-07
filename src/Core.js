@@ -162,6 +162,14 @@ class Core
             this.initReset();
             return;
         }
+        if ($(target).hasClass("cdm-fold-all")) {
+            this.backend.foldAll();
+            return;
+        }
+        if ($(target).hasClass("cdm-unfold-all")) {
+            this.backend.unfoldAll();
+            return;
+        }
         let set = $(target).hasClass("cdm-setAll");
         for (let i = 0; i < this.diffs.length; i++) {
             let diff = this.diffs[i];

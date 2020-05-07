@@ -132,6 +132,7 @@
     font-size: 16px;
     height: 24px;
     vertical-align: center;
+    margin-right: 2px;
 }
 
 .cdm-clearAll {
@@ -175,9 +176,14 @@ a.cdm-label:link {
 }
 
 .cdm-reset {
-    float: right;
     font-size: 10px;
     height: 16px;
+}
+
+.cdm-toolbox {
+    float: right;
+    background: orange;
+    vertical-align: middle;
 }
 
 .cdm-github-per-file-stats {
