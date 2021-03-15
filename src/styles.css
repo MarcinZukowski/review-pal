@@ -202,3 +202,12 @@ a.cdm-label:link {
 .cdm-github-per-file-stats img {
     vertical-align: middle;
 }
+
+.cdm-selection-0 { color: white; background: orange; }
+.cdm-selection-1 { color: white; background: red; }
+.cdm-selection-2 { color: white; background: green; }
+.cdm-selection-3 { color: white; background: blue; }
+.cdm-selection-4 { color: white; background: salmon; }
+.cdm-selection-5 { color: white; background: darkcyan; }
+.cdm-selection-6 { color: white; background: darkmagenta; }
+.cdm-selection-7 { color: white; background: darkgoldenrod; }

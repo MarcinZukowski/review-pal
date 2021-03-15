@@ -254,4 +254,14 @@ ${dmcore.LABEL}: &nbsp; ${total} diffs (${totalLines} lines) in total.
     {
         return window.location.href;
     }
+
+    selectionRemove(selection)
+    {
+        console.log("Not implemented");
+    }
+
+    selectionAdd(selection)
+    {
+        console.log("Not implemented");
+    }
 }

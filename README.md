@@ -12,7 +12,7 @@ First version was the result of roughly a day of work, it was fun to go blindly 
 
 ## Functionality
 
-Crucible and GitHub:
+GitHub and Crucible:
 * Marking individual changes as done / not done
 * Manually breaking a change into smaller changes
   * How: Middle-click on the (2nd or later) line in a change to split or unsplit
@@ -28,6 +28,11 @@ Crucible and GitHub:
   * `shift+K` - next unreviewed diff
   * `shift+ctrl+K` - next diff
   * `shift+X`, `shift+ctrl+X` - mark diff reviewed / unreviewed
+
+
+Github only:
+* Ability to highlight multiple words with double-click, up to 8 different highlights.
+
 
 Github notes:
 * Only works in split view currently.

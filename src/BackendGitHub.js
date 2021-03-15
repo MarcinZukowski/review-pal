@@ -53,6 +53,11 @@ class BackendGitHub
 
     updateStats(total, totalLines, done, doneLines, todo, todoLines)
     {
+        let selections = "";
+        for (let i = 0; i < dmcore.selections.length; i++) {
+            let sel = dmcore.selections[i];
+            selections += `<span class='cdm-selection-${sel.color}'>${sel.text}</span> `;
+        }
         $("#" + dmcore.statsId).html(`
 <table class="cdm-stats-table">
 <tr>
@@ -76,6 +81,11 @@ class BackendGitHub
     <th>
       <span class="cdm-button cdm-clearAll" style="float-right"><img ${dmcore.redHTML} width="20" height="20"/>Clear all</span>
     </th>
+</tr>
+<tr>
+<td colspan="4">
+${selections}
+</td>
 </tr>
 </table>
 `);
@@ -338,5 +348,37 @@ style="position: relative; top: 0; right: 20px; opacity: 80%; background-color: 
     {
         $(".js-file").addClass("open");
         $(".js-file").addClass("Details--on");
+    }
+
+    selectionRemove(selection)
+    {
+        let col = selection.color;
+        $(`span.cdm-selection-${col}`).each(function(idx, elem) {
+            $(elem).replaceWith($(elem).text());
+        });
+    }
+
+    selectionAdd(selection)
+    {
+        let selText = selection.text;
+        let col = selection.color;
+
+        const regex = new RegExp(`\\b${selText}\\b`, 'g');
+
+        function replacer(idx, elem) {
+            if (elem.nodeType == Node.TEXT_NODE) {
+                // Text node, see if there's something to replace
+                if ($(elem).text().search(regex) >= 0) {
+                    // Found a string to replace
+                    let newContent = $(elem).text().replaceAll(regex, `<span class='cdm-selection-${col}'>${selText}</span>`)
+                    $(elem).replaceWith(newContent);
+                }
+            } else {
+                // Go deeper
+                $(elem).contents().each(replacer);
+            }
+        }
+
+        $("span.blob-code-inner").each(replacer);
     }
 }

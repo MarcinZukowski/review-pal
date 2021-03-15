@@ -10,6 +10,8 @@ class Core
         let greenUrl = chrome.runtime.getURL("images/green-128.png");
         this.redHTML = `src="${redUrl}" alt="(_)" `;
         this.greenHTML = `src="${greenUrl}" alt="(X)" `;
+        this.selections = [];
+        this.selectionAvailableColors = [0,1,2,3,4,5,6,7];
 
         console.log(window.location.href);
         if (window.location.href.search("github") >= 0) {
@@ -23,6 +25,7 @@ class Core
     {
         $(window).on('hashchange', this.hashChanged.bind(this));
         $(window).on("mousedown", this.middleClick.bind(this));
+        $(window).on("dblclick", this.doubleClick.bind(this));
         $(window).on("keypress", this.keyPressed.bind(this));
         this.hashChanged();
     }
@@ -62,6 +65,68 @@ class Core
             }
         }
         console.error(`Can't find row for ${diffLine}, diffs=${this.diffs}`);
+    }
+
+    selectionAdd(selText)
+    {
+        if (this.selections.length === 8) {
+            this.selectionRemove(0);
+        }
+
+        console.log(`Adding selection for ${selText}`)
+        let idx = this.selections.length;
+        let col = this.selectionAvailableColors.pop();
+        let selection = {text: selText, color: col}
+
+        this.backend.selectionAdd(selection);
+
+        this.selections.push(selection)
+        this.selectionShow();
+
+    }
+
+    selectionRemove(idx)
+    {
+        let selection = this.selections[idx];
+        console.log(`Removing selection for ${selection.text}`);
+
+        this.backend.selectionRemove(selection);
+
+        this.selectionAvailableColors.push(selection.color);
+        this.selections.splice(idx, 1);
+        this.selectionShow();
+    }
+
+    selectionShow()
+    {
+        console.log(this.selections);
+        console.log(this.selectionAvailableColors);
+        this.updateStats();
+    }
+
+    doubleClick(ev)
+    {
+
+        // Only left click
+        if (ev.which != 1) {
+            return true;
+        }
+        let sel = window.getSelection();
+        let selText = sel.toString().trim();
+
+        let deleted = false;
+        // If empty selection or existing selection, delete it
+        for (let i = 0; i < this.selections.length; i++) {
+            if (selText === "" || this.selections[i].text == selText) {
+                this.selectionRemove(i);
+                i--;
+                deleted = true;
+            }
+        }
+
+        if (!deleted) {
+            this.selectionAdd(selText);
+        }
     }
 
     middleClick(ev)
