@@ -1,6 +1,6 @@
 class BackendGitHub
 {
-    CLASS_JUMP = "cdm-jump-github";
+    CLASS_JUMP = "rp-jump-github";
     // #ms before we start analyzing diffs
     WAIT_DELAY = 500;
 
@@ -17,7 +17,7 @@ class BackendGitHub
             console.log("No id, exiting");
             return;
         }
-        dmcore.id = m[1];
+        rpcore.id = m[1];
     }
 
     initBar()
@@ -28,58 +28,58 @@ class BackendGitHub
             return;
         }
         console.log("Adding bar");
-        tb.append(`<div class="cdm-bar cdm-bar-github" id="${dmcore.barId}"/><br/>`);
+        tb.append(`<div class="rp-bar rp-bar-github" id="${rpcore.barId}"/><br/>`);
 
-        let bar = $("#"+dmcore.barId);
+        let bar = $("#"+rpcore.barId);
         bar.html(`
-<span class="cdm-stats-github" id="${dmcore.statsId}">${dmcore.LABEL}</span>
-<span class="cdm-toolbox">
+<span class="rp-stats-github" id="${rpcore.statsId}">${rpcore.LABEL}</span>
+<span class="rp-toolbox">
   <!-- Blatantly copied -->
-  <span class="cdm-button cdm-unfold-all" title="Unfold all files">
+  <span class="rp-button rp-unfold-all" title="Unfold all files">
     <svg viewBox="0 0 10 16" version="1.1" width="10" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M5 11L0 6l1.5-1.5L5 8.25 8.5 4.5 10 6l-5 5z"></path></svg>
   </span>
-  <span class="cdm-button cdm-fold-all" title="Fold all files">
+  <span class="rp-button rp-fold-all" title="Fold all files">
     <svg viewBox="0 0 8 16" version="1.1" width="8" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M7.5 8l-5 5L1 11.5 4.75 8 1 4.5 2.5 3l5 5z"></path></svg>
   </span>
 
-  <span class="cdm-button cdm-reset" title="Reload">
+  <span class="rp-button rp-reset" title="Reload">
     reset
   </span>
 </span>
-<div class="cdm-message-github" id="${dmcore.messageId}"></div>
+<div class="rp-message-github" id="${rpcore.messageId}"></div>
 `);
-        $("span.cdm-button").on("click", dmcore.buttonPressed.bind(dmcore));
+        $("span.rp-button").on("click", rpcore.buttonPressed.bind(rpcore));
     }
 
     updateStats(total, totalLines, done, doneLines, todo, todoLines)
     {
         let selections = "";
-        for (let i = 0; i < dmcore.selections.length; i++) {
-            let sel = dmcore.selections[i];
-            selections += `<span class='cdm-selection-${sel.color}'>${sel.text}</span> `;
+        for (let i = 0; i < rpcore.selections.length; i++) {
+            let sel = rpcore.selections[i];
+            selections += `<span class='rp-selection-${sel.color}'>${sel.text}</span> `;
         }
-        $("#" + dmcore.statsId).html(`
-<table class="cdm-stats-table">
+        $("#" + rpcore.statsId).html(`
+<table class="rp-stats-table">
 <tr>
     <th>Total:</th>
     <td>${total} diffs</td>
     <td>${totalLines} lines</td>
-    <th>${dmcore.LABEL}</th>
+    <th>${rpcore.LABEL}</th>
 </tr>
 <tr style="background-color: #ccffcc">
-    <th class="cdm-stats-done">Done</th>
-    <td class="cdm-stats-text cdm-stats-done">${done} diffs</td>
-    <td class="cdm-stats-text cdm-stats-done">${doneLines} lines</td>
+    <th class="rp-stats-done">Done</th>
+    <td class="rp-stats-text rp-stats-done">${done} diffs</td>
+    <td class="rp-stats-text rp-stats-done">${doneLines} lines</td>
     <th>
-         <span class="cdm-button cdm-setAll" style="float-right"><img ${dmcore.greenHTML} width="20" height="20"/> Mark all done</span>
+         <span class="rp-button rp-setAll" style="float-right"><img ${rpcore.greenHTML} width="20" height="20"/> Mark all done</span>
     </th>
 </tr>
 <tr style="background-color: #ffcccc">
-    <th class="cdm-stats-todo">To do</th>
-    <td class="cdm-stats-text cdm-stats-todo">${todo} diffs</td>
-    <td class="cdm-stats-text cdm-stats-todo">${todoLines} lines</td>
+    <th class="rp-stats-todo">To do</th>
+    <td class="rp-stats-text rp-stats-todo">${todo} diffs</td>
+    <td class="rp-stats-text rp-stats-todo">${todoLines} lines</td>
     <th>
-      <span class="cdm-button cdm-clearAll" style="float-right"><img ${dmcore.redHTML} width="20" height="20"/>Clear all</span>
+      <span class="rp-button rp-clearAll" style="float-right"><img ${rpcore.redHTML} width="20" height="20"/>Clear all</span>
     </th>
 </tr>
 <tr>
@@ -90,13 +90,13 @@ ${selections}
 </table>
 `);
 
-        $("span.cdm-button").off("click");
-        $("span.cdm-button").on("click", dmcore.buttonPressed.bind(dmcore));
+        $("span.rp-button").off("click");
+        $("span.rp-button").on("click", rpcore.buttonPressed.bind(rpcore));
     }
 
     waitForDiff(callback)
     {
-        dmcore.message("Waiting for data");
+        rpcore.message("Waiting for data");
         this.waitCallback = callback;
         this.scheduledCall = null;
         this.scheduleLoadCompletion();
@@ -104,7 +104,7 @@ ${selections}
 
     scheduleLoadCompletion()
     {
-        dmcore.message("Data incoming");
+        rpcore.message("Data incoming");
         if (this.scheduledCall) {
             clearTimeout(this.scheduledCall);
         }
@@ -151,7 +151,7 @@ ${selections}
 
     analyzeDiffs()
     {
-        dmcore.diffs = [];
+        rpcore.diffs = [];
         let diff = null;
         let parent = this;
         let path = null;
@@ -160,7 +160,7 @@ ${selections}
         function finishDiff()
         {
             if (diff) {
-                dmcore.diffs.push(diff);
+                rpcore.diffs.push(diff);
                 parent.updateDiff(diff, false/*updateFile*/);
                 // Finish diff
                 diff = null;
@@ -169,7 +169,7 @@ ${selections}
 
         let perHunk = function(index, row) {
             let diffLine = parent.createDiffLine(row);
-            let isBreak = dmcore.data.breaks.indexOf(diffLine.id) >= 0;
+            let isBreak = rpcore.data.breaks.indexOf(diffLine.id) >= 0;
             let isDiff = parent.isDiff(row);
             let first = (index === 0);
 
@@ -205,10 +205,10 @@ ${selections}
         // TODO: this is stupid slow, optimize!
         let done = 0, todo=0;
         // Sum all diffs for this file
-        for (let d = 0; d < dmcore.diffs.length; d++) {
-            let od = dmcore.diffs[d];
+        for (let d = 0; d < rpcore.diffs.length; d++) {
+            let od = rpcore.diffs[d];
             if (od.path === path) {
-                if (dmcore.isDone(od.getId())) {
+                if (rpcore.isDone(od.getId())) {
                     done += od.getNumLines();
                 } else {
                     todo += od.getNumLines();
@@ -217,17 +217,17 @@ ${selections}
         }
         // Find file header
         let header = $(`[data-path="${path}"]`);
-        header.find(".cdm-github-per-file-stats").remove();
+        header.find(".rp-github-per-file-stats").remove();
         let total = done + todo;
         let idAllDone = "fileSetAllDone_" + path;
         let idAllClear = "fileSetAllClear_" + path;
         let extraClass = (done == total) ? "all-done" : "";
         let stats = jQuery.parseHTML(`
-<span class="cdm-github-per-file-stats ${extraClass}" 
+<span class="rp-github-per-file-stats ${extraClass}" 
   style="background: linear-gradient(90deg, #4f48 0%, #fff4 ${100 * done / total}%, #f448 100%);"
 >
-<img ${dmcore.greenHTML} title="Mark all diffs in file as done" width="20" height="20" data-alldone="${path}" />
-<img ${dmcore.redHTML} title="Clear all diffs in file" width="12" height="12" data-allclear="${path}" />
+<img ${rpcore.greenHTML} title="Mark all diffs in file as done" width="20" height="20" data-alldone="${path}" />
+<img ${rpcore.redHTML} title="Clear all diffs in file" width="12" height="12" data-allclear="${path}" />
 Done: ${done} / ${total}
 </span>
         `);
@@ -238,15 +238,15 @@ Done: ${done} / ${total}
 
     setAllPerFile(path, set)
     {
-        for (let d = 0; d < dmcore.diffs.length; d++) {
-            let od = dmcore.diffs[d];
+        for (let d = 0; d < rpcore.diffs.length; d++) {
+            let od = rpcore.diffs[d];
             if (od.path === path) {
-                dmcore.setDone(od.getId(), set);
-                dmcore.updateDiff(od, true);
+                rpcore.setDone(od.getId(), set);
+                rpcore.updateDiff(od, true);
             }
         }
-        dmcore.updateStats();
-        dmcore.initDataSave();
+        rpcore.updateStats();
+        rpcore.initDataSave();
 
     }
 
@@ -255,18 +255,18 @@ Done: ${done} / ${total}
         updateFile = updateFile ?? true;
         this.addDiffHeader(diff);
         let id = diff.getId();
-        let isDone = dmcore.isDone(id);
+        let isDone = rpcore.isDone(id);
         for (let r = 0; r < diff.lines.length; r++) {
             let row = $(diff.lines[r].row);
             let elems = row.find("span, .lineContent , .diffContentA , .diffContentB , .diffLineNumbersA , .diffLineNumbersB");
             if (isDone) {
-                elems.addClass("cdm-hidden");
+                elems.addClass("rp-hidden");
             } else {
-                elems.removeClass("cdm-hidden");
+                elems.removeClass("rp-hidden");
             }
         }
 
-        $("." + id).on("click", dmcore.flip.bind(dmcore, diff));
+        $("." + id).on("click", rpcore.flip.bind(rpcore, diff));
         if (updateFile) {
             this.updateFile(diff.path);
         }
@@ -275,14 +275,14 @@ Done: ${done} / ${total}
     hideDiffHeader(diff)
     {
         $(diff.lines[0].row).find(".js-linkable-line-number").html("");
-        $(diff.lines[0].row).find(".cdm-forcedBreak").removeClass("cdm-forcedBreak");
+        $(diff.lines[0].row).find(".rp-forcedBreak").removeClass("rp-forcedBreak");
     }
 
     addDiffHeader(diff)
     {
         let id = diff.getId();
-        let isDone = dmcore.isDone(id);
-        let imgHTML = isDone ? dmcore.greenHTML: dmcore.redHTML;
+        let isDone = rpcore.isDone(id);
+        let imgHTML = isDone ? rpcore.greenHTML: rpcore.redHTML;
         $(diff.lines[0].row)
             .find(".js-linkable-line-number")
             .html(`
@@ -291,8 +291,8 @@ style="position: relative; top: 0; right: 20px; opacity: 80%; background-color: 
 />
 `);
 
-        if (dmcore.data.breaks.indexOf(id) >= 0) {
-            $(diff.lines[0].row).find("td").addClass("cdm-forcedBreak");
+        if (rpcore.data.breaks.indexOf(id) >= 0) {
+            $(diff.lines[0].row).find("td").addClass("rp-forcedBreak");
         }
     }
 
@@ -353,7 +353,7 @@ style="position: relative; top: 0; right: 20px; opacity: 80%; background-color: 
     selectionRemove(selection)
     {
         let col = selection.color;
-        $(`span.cdm-selection-${col}`).each(function(idx, elem) {
+        $(`span.rp-selection-${col}`).each(function(idx, elem) {
             $(elem).replaceWith($(elem).text());
         });
     }
@@ -375,7 +375,7 @@ style="position: relative; top: 0; right: 20px; opacity: 80%; background-color: 
                     let texts = oldText.split(regex);
                     for (let i = 0 ; i < texts.length; i++) {
                         if (i > 0) {
-                            let spanNode = $.parseHTML(`<span class='cdm-selection-${col}'>${selText}</span>`)[0];
+                            let spanNode = $.parseHTML(`<span class='rp-selection-${col}'>${selText}</span>`)[0];
                             newContent.push(spanNode);
                         }
                         let text = texts[i];

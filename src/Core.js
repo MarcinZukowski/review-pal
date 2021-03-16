@@ -1,7 +1,7 @@
 /* Main class */
 class Core
 {
-    LABEL = `<a class="cdm-label" href="https://github.com/MarcinZukowski/crucible-diff-marker">CrucibleDiffMarker</a>`;
+    LABEL = `<a class="rp-label" href="https://github.com/MarcinZukowski/review-pal">Review Pal</a>`;
 
     constructor()
     {
@@ -182,7 +182,7 @@ class Core
     hashChanged()
     {
         this.href = window.location.href;
-        this.dataKey = "cdm::" + this.backend.generateDataKey();
+        this.dataKey = "rp::" + this.backend.generateDataKey();
         console.log(`Using dataKey: ${this.dataKey}`);
         this.lastFoundDiffIdx = -1;
 
@@ -200,10 +200,10 @@ class Core
         console.log(`Using id: ${this.id}`);
 
         // Prepare some identifiers
-        this.barId = "cdm-bar-" + this.id;
-        this.statsId = "cdm-stats-" + this.id;
-        this.messageId = "cdm-message-" + this.id;
-        this.counterId = "cdm-counter-" + this.id;
+        this.barId = "rp-bar-" + this.id;
+        this.statsId = "rp-stats-" + this.id;
+        this.messageId = "rp-message-" + this.id;
+        this.counterId = "rp-counter-" + this.id;
 
         this.initBar();
 
@@ -223,19 +223,19 @@ class Core
     buttonPressed(event)
     {
         let target = event.delegateTarget;
-        if ($(target).hasClass("cdm-reset")) {
+        if ($(target).hasClass("rp-reset")) {
             this.initReset();
             return;
         }
-        if ($(target).hasClass("cdm-fold-all")) {
+        if ($(target).hasClass("rp-fold-all")) {
             this.backend.foldAll();
             return;
         }
-        if ($(target).hasClass("cdm-unfold-all")) {
+        if ($(target).hasClass("rp-unfold-all")) {
             this.backend.unfoldAll();
             return;
         }
-        let set = $(target).hasClass("cdm-setAll");
+        let set = $(target).hasClass("rp-setAll");
         for (let i = 0; i < this.diffs.length; i++) {
             let diff = this.diffs[i];
             this.setDone(diff.getId(), set);
@@ -349,7 +349,7 @@ class Core
     message(str)
     {
         console.log("Message: " + str);
-        $("#" + this.messageId).html(`<span class="cdm-message-text">${str}</span>`);
+        $("#" + this.messageId).html(`<span class="rp-message-text">${str}</span>`);
     }
 
     updateStats()
@@ -381,8 +381,8 @@ class Core
             this.backend.markFileAsReviewed(this.id)
         }
 
-        $(".cdm-stats-todo").on("click", this.gotoNext.bind(this, false));
-        $(".cdm-stats-done").on("click", this.gotoNext.bind(this, true));
+        $(".rp-stats-todo").on("click", this.gotoNext.bind(this, false));
+        $(".rp-stats-done").on("click", this.gotoNext.bind(this, true));
     }
 
     /**
@@ -427,7 +427,7 @@ class Core
             this.message(`Scrolling to ${foundDiff.getId()} (${prevTop} -> ${foundTop} -> ${currTop})`);
             // Add animation and removal of it after it's done
             $(foundDiff.lines[0].row).addClass(cls);
-//            window.setTimeout(function() { this.removeClass("cdm-jump"); }.bind(foundDiff.rows[0]), 500);
+//            window.setTimeout(function() { this.removeClass("rp-jump"); }.bind(foundDiff.rows[0]), 500);
         } else {
             this.message(`No ${shouldBeDone? "" : "un"}reviewed diffs!`);
             // this.lastFoundDiffIdx = -1;
@@ -450,5 +450,5 @@ class Core
     hideDiffHeader(diff) { this.backend.hideDiffHeader(diff); }
 }
 
-let dmcore = new Core();
-dmcore.start();
+let rpcore = new Core();
+rpcore.start();

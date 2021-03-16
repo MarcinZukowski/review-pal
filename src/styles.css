@@ -1,6 +1,6 @@
-/* All classes should use cdm-* */
+/* All classes should use rp-* */
 
-.cdm-bar{
+.rp-bar{
     border: 2px solid deepskyblue;
     border-radius: 5px;
     background: white;
@@ -10,7 +10,7 @@
     padding: 3px;
 }
 
-.cdm-bar-github {
+.rp-bar-github {
     position: absolute;
     top: 0px;
     left: 50%;
@@ -18,16 +18,16 @@
     height: auto;
 }
 
-.cdm-stats {
+.rp-stats {
     float: left;
     width: 35%;
 }
 
-.cdm-stats-github {
+.rp-stats-github {
     width: 100%;
 }
 
-@keyframes cdm-message-ani{
+@keyframes rp-message-ani{
     0%{
         opacity: 1;
     }
@@ -36,7 +36,7 @@
     }
 }
 
-@keyframes cdm-stats-ani{
+@keyframes rp-stats-ani{
     0%{
         background-color: #00ff0088;
     }
@@ -45,49 +45,49 @@
     }
 }
 
-.cdm-message {
+.rp-message {
     float: right;
     width: 35%;
 }
 
-.cdm-message-github {
+.rp-message-github {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.cdm-message-text {
-    animation-name: cdm-message-ani;
+.rp-message-text {
+    animation-name: rp-message-ani;
     animation-duration: 2000ms;
     animation-fill-mode: forwards;
 }
 
-.cdm-stats-table {
+.rp-stats-table {
     width: 100%;
 }
-.cdm-stats-table th {
+.rp-stats-table th {
     text-align: right;
     padding-left: 10px;
 }
 
-.cdm-stats-table td  {
+.rp-stats-table td  {
     padding-left: 10px;
 }
 
-.cdm-stats-text {
-    animation-name: cdm-stats-ani;
+.rp-stats-text {
+    animation-name: rp-stats-ani;
     animation-duration: 700ms;
     animation-fill-mode: forwards;
 }
 
-@keyframes cdm-jump-ani{
+@keyframes rp-jump-ani{
       0% { opacity: 1.0; }
      50% { opacity: 0.2; }
     100% { opacity: 1.0;
            background-color: red; }
 }
-.cdm-jump {
-    animation-name: cdm-jump-ani;
+.rp-jump {
+    animation-name: rp-jump-ani;
     animation-duration: 500ms;
     animation-fill-mode: forwards;
 /*
@@ -96,7 +96,7 @@
  */
 }
 
-.cdm-jump:after{
+.rp-jump:after{
     content: "Current diff    ";
     display: block;
     position: absolute; right: 0px;
@@ -108,23 +108,23 @@
     pointer-events: none;
 }
 
-.cdm-jump-github {
-    animation-name: cdm-jump-ani;
+.rp-jump-github {
+    animation-name: rp-jump-ani;
     animation-duration: 500ms;
     animation-fill-mode: forwards;
 }
 
-.cdm-jump-github td {
+.rp-jump-github td {
     border-top: 3px solid #ffa50080;
     border-bottom: 3px solid #ffa50080;
 }
 
 
-.cdm-tools {
+.rp-tools {
     width: 30%
 }
 
-.cdm-button {
+.rp-button {
     background-color: white;
     border: 2px solid;
     border-radius: 5px;
@@ -135,79 +135,79 @@
     margin-right: 2px;
 }
 
-.cdm-clearAll {
+.rp-clearAll {
     border-color: orangered;
 }
-.cdm-setAll {
+.rp-setAll {
     border-color: darkseagreen;
 }
 
-.cdm-hidden {
+.rp-hidden {
     /* background-color: #cccccc !important; */
     color: darkgray !important;
 }
 
-.aui-badge.cdm-counter {
+.aui-badge.rp-counter {
     padding-left: 5px;
     padding-right: 5px;
 }
-.aui-badge.cdm-counter-done {
+.aui-badge.rp-counter-done {
     background: #ccffcc;
     font-weight: lighter;
 }
-.aui-badge.cdm-counter-todo {
+.aui-badge.rp-counter-todo {
     background: #ffcccc;
     font-weight: bold;
 }
 
-.diffContentA.cdm-hidden , .diffLineNumbersA.cdm-hidden {
+.diffContentA.rp-hidden , .diffLineNumbersA.rp-hidden {
     background-color: #FFF0F0 !important;
 }
-.diffContentB.cdm-hidden , .diffLineNumbersB.cdm-hidden{
+.diffContentB.rp-hidden , .diffLineNumbersB.rp-hidden{
     background-color: #DCFFDC !important;
 }
 
-a.cdm-label:link {
+a.rp-label:link {
    text-decoration: none;
 }
 
-.cdm-forcedBreak {
+.rp-forcedBreak {
     border-top: 2px dashed gray;
 }
 
-.cdm-reset {
+.rp-reset {
     font-size: 10px;
     height: 16px;
 }
 
-.cdm-toolbox {
+.rp-toolbox {
     float: right;
     background: orange;
     vertical-align: middle;
 }
 
-.cdm-github-per-file-stats {
+.rp-github-per-file-stats {
     float: right;
     width: 180px;
     text-align: left;
     padding: 2px;
 }
 
-.cdm-github-per-file-stats.all-done {
+.rp-github-per-file-stats.all-done {
     color: #0008;
     font-style: italic;
     border: 2px solid green;
 }
 
-.cdm-github-per-file-stats img {
+.rp-github-per-file-stats img {
     vertical-align: middle;
 }
 
-.cdm-selection-0 { color: white; background: orange; }
-.cdm-selection-1 { color: white; background: red; }
-.cdm-selection-2 { color: white; background: green; }
-.cdm-selection-3 { color: white; background: blue; }
-.cdm-selection-4 { color: white; background: salmon; }
-.cdm-selection-5 { color: white; background: darkcyan; }
-.cdm-selection-6 { color: white; background: darkmagenta; }
-.cdm-selection-7 { color: white; background: darkgoldenrod; }
+.rp-selection-0 { color: white; background: orange; }
+.rp-selection-1 { color: white; background: red; }
+.rp-selection-2 { color: white; background: green; }
+.rp-selection-3 { color: white; background: blue; }
+.rp-selection-4 { color: white; background: salmon; }
+.rp-selection-5 { color: white; background: darkcyan; }
+.rp-selection-6 { color: white; background: darkmagenta; }
+.rp-selection-7 { color: white; background: darkgoldenrod; }

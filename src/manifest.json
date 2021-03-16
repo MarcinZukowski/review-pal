@@ -1,9 +1,9 @@
 {
   "manifest_version": 2,
  
-  "name": "Crucible Diff Marker",
-  "version": "0.4.0",
-  "description": "Allows to mark individual changes in Crucible and GitHub as done",
+  "name": "Review Pal",
+  "version": "0.5.0",
+  "description": "Code-reviewer life improvements for GitHub and Crucible",
 
   "permissions": [
     "storage"

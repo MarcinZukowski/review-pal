@@ -3,7 +3,7 @@ class BackendCrucible
     DIFF_DATA_MAX_ATTEMPTS = 30;
     DIFF_DATA_ATTEMPTS_DELAY_MS = 1000;
 
-    CLASS_JUMP = "cdm-jump";
+    CLASS_JUMP = "rp-jump";
 
     constructor()
     {
@@ -32,18 +32,18 @@ class BackendCrucible
     {
         this.addDiffHeader(diff);
         let id = diff.getId();
-        let isDone = dmcore.isDone(id);
+        let isDone = rpcore.isDone(id);
         for (let r = 0; r < diff.lines.length; r++) {
             let row = $(diff.lines[r].row);
             let elems = row.find("span, .lineContent , .diffContentA , .diffContentB , .diffLineNumbersA , .diffLineNumbersB");
             if (isDone) {
-                elems.addClass("cdm-hidden");
+                elems.addClass("rp-hidden");
             } else {
-                elems.removeClass("cdm-hidden");
+                elems.removeClass("rp-hidden");
             }
         }
 
-        $("." + id).on("click", dmcore.flip.bind(dmcore, diff));
+        $("." + id).on("click", rpcore.flip.bind(rpcore, diff));
     }
 
     hideDiffHeader(diff)
@@ -53,14 +53,14 @@ class BackendCrucible
         let rightCell = row0.find(".diffLineNumbersB:first");
         rightCell.html("&nbsp;");
         rightCell.removeClass("tetrisColumn");
-        row0.removeClass("cdm-forcedBreak");
+        row0.removeClass("rp-forcedBreak");
     }
 
     addDiffHeader(diff)
     {
         let id = diff.getId();
-        let isDone = dmcore.isDone(id);
-        let imgHTML = isDone ? dmcore.greenHTML: dmcore.redHTML;
+        let isDone = rpcore.isDone(id);
+        let imgHTML = isDone ? rpcore.greenHTML: rpcore.redHTML;
         let row0 = $(diff.lines[0].row);
         row0.find(".tetrisColumn").html(`<img ${imgHTML} width="16" height="16" class="${id}"/>`);
 
@@ -72,8 +72,8 @@ class BackendCrucible
             rightCell.addClass("tetrisColumn");
         }
 
-        if (dmcore.data.breaks.indexOf(id) >= 0) {
-            row0.addClass("cdm-forcedBreak");
+        if (rpcore.data.breaks.indexOf(id) >= 0) {
+            row0.addClass("rp-forcedBreak");
         }
     }
 
@@ -97,12 +97,12 @@ class BackendCrucible
     {
         this.unified = this.isUnified();
 
-        let diffStart = $("#diffStart" + dmcore.id);
+        let diffStart = $("#diffStart" + rpcore.id);
 
         // Go over all siblings of diffStart;
         let row = diffStart;
         let diff = null;
-        dmcore.diffs = [];
+        rpcore.diffs = [];
         while (true) {
             row = row.next();
             if (row.length === 0) {
@@ -113,13 +113,13 @@ class BackendCrucible
                 continue;
             }
             let diffLine = this.createDiffLine(row);
-            let isBreak = dmcore.data.breaks.indexOf(diffLine.id) >= 0;
+            let isBreak = rpcore.data.breaks.indexOf(diffLine.id) >= 0;
             let isDiff = row.hasClass("is-diff");
             if (!isDiff || isBreak) {
                 // Possibly an end of a diff
                 if (diff) {
-                    dmcore.diffs.push(diff);
-                    dmcore.updateDiff(diff);
+                    rpcore.diffs.push(diff);
+                    rpcore.updateDiff(diff);
                     // Finish diff
                     diff = null;
                 }
@@ -143,30 +143,30 @@ class BackendCrucible
             console.log("No #CFR, exiting");
             return;
         }
-        dmcore.id = hash.substr(5);
+        rpcore.id = hash.substr(5);
     }
 
     initBar()
     {
         console.log("Adding bar");
-        let fci = $("#frx-context-info-" + dmcore.id);
+        let fci = $("#frx-context-info-" + rpcore.id);
         if (fci.length === 0) {
             console.error("Can't find frx-context-info");
             return;
         }
-        fci.after(`<div class="cdm-bar" id="${dmcore.barId}"/>`);
+        fci.after(`<div class="rp-bar" id="${rpcore.barId}"/>`);
 
-        let bar = $("#"+dmcore.barId);
+        let bar = $("#"+rpcore.barId);
         bar.html(`
-<span class="cdm-stats" id="${dmcore.statsId}">${dmcore.LABEL}</span>
-<span class="cdm-tools"">
+<span class="rp-stats" id="${rpcore.statsId}">${rpcore.LABEL}</span>
+<span class="rp-tools"">
     
-      <span class="cdm-button cdm-clearAll"><img ${dmcore.redHTML} width="20" height="20"/>Clear all</span>
-      <span class="cdm-button cdm-setAll"><img ${dmcore.greenHTML} width="20" height="20"/> Mark all done</span>
+      <span class="rp-button rp-clearAll"><img ${rpcore.redHTML} width="20" height="20"/>Clear all</span>
+      <span class="rp-button rp-setAll"><img ${rpcore.greenHTML} width="20" height="20"/> Mark all done</span>
 </span>
-<span class="cdm-message" id="${dmcore.messageId}"></span>
+<span class="rp-message" id="${rpcore.messageId}"></span>
 `);
-        $("span.cdm-button").click(dmcore.buttonPressed.bind(dmcore));
+        $("span.rp-button").click(rpcore.buttonPressed.bind(rpcore));
 
     }
 
@@ -174,19 +174,19 @@ class BackendCrucible
     {
         this.waitDiffAttempts++;
 
-        let diffStart = $("#diffStart" + dmcore.id);
+        let diffStart = $("#diffStart" + rpcore.id);
         if (diffStart.length === 0) {
             if (this.waitDiffAttempts >= this.DIFF_DATA_MAX_ATTEMPTS) {
-                dmcore.message("Can't find diff data");
+                rpcore.message("Can't find diff data");
                 return;
             }
-            dmcore.message(`Waiting for diff data, attempt ${this.waitDiffAttempts}`);
+            rpcore.message(`Waiting for diff data, attempt ${this.waitDiffAttempts}`);
             window.setTimeout(this.waitForDiffHelper.bind(this, callback), this.DIFF_DATA_ATTEMPTS_DELAY_MS);
             return;
         }
 
         // Detect node changes to be able to re-render our stuff
-        $("#frxouter" + dmcore.id).on("DOMNodeInserted", this.nodeInserted.bind(this));
+        $("#frxouter" + rpcore.id).on("DOMNodeInserted", this.nodeInserted.bind(this));
 
         callback();
     }
@@ -202,42 +202,42 @@ class BackendCrucible
         // this element seems to be the last one inserted
         console.log(ev.target);
         if ($(ev.target).hasClass("floating-scrollbar")) {
-            dmcore.initBar();
-            dmcore.analyzeDiffs();
+            rpcore.initBar();
+            rpcore.analyzeDiffs();
         }
     }
 
     updateCounter(done, total)
     {
-        let counter = $("#"+dmcore.counterId);
+        let counter = $("#"+rpcore.counterId);
         if (counter.length === 0) {
             // Create a new counter
-            let fcc = $("#frxCommentCount" + dmcore.id);
+            let fcc = $("#frxCommentCount" + rpcore.id);
             if (fcc.length === 0) {
                 console.error("Can't find frx-comment-count");
                 return;
             }
-            fcc.after(`<span id="${this.counterId}" class="aui-badge cdm-counter"></span>`);
-            counter = $("#"+dmcore.counterId);
+            fcc.after(`<span id="${this.counterId}" class="aui-badge rp-counter"></span>`);
+            counter = $("#"+rpcore.counterId);
         }
 
         counter.html(`${done}/${total}`);
-        counter.removeClass("cdm-counter-todo cdm-counter-done");
-        counter.addClass(done === total ? "cdm-counter-done" : "cdm-counter-todo");
+        counter.removeClass("rp-counter-todo rp-counter-done");
+        counter.addClass(done === total ? "rp-counter-done" : "rp-counter-todo");
     }
 
     updateStats(total, totalLines, done, doneLines, todo, todoLines)
     {
-        $("#" + dmcore.statsId).html(`
-${dmcore.LABEL}: &nbsp; ${total} diffs (${totalLines} lines) in total. 
+        $("#" + rpcore.statsId).html(`
+${rpcore.LABEL}: &nbsp; ${total} diffs (${totalLines} lines) in total. 
 &nbsp;&nbsp;
-  <span class="cdm-stats-text cdm-stats-done">
-    <img ${dmcore.greenHTML} width="16" height="16"/>
+  <span class="rp-stats-text rp-stats-done">
+    <img ${rpcore.greenHTML} width="16" height="16"/>
     ${done} diffs (${doneLines} lines) done.
   </span>
 &nbsp;&nbsp;
-  <span class="cdm-stats-text cdm-stats-todo">
-    <img ${dmcore.redHTML} width="16" height="16"/> 
+  <span class="rp-stats-text rp-stats-todo">
+    <img ${rpcore.redHTML} width="16" height="16"/> 
     ${todo} diffs (${todoLines} lines) to do.
   </span>
 `);
@@ -245,7 +245,7 @@ ${dmcore.LABEL}: &nbsp; ${total} diffs (${totalLines} lines) in total.
 
     getDiffContainerOffset()
     {
-        let container = $("#sourceTable" + dmcore.id);
+        let container = $("#sourceTable" + rpcore.id);
         let containerOffset = container.offset().top - container.scrollTop();
         return containerOffset;
     }
