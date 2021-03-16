@@ -368,9 +368,22 @@ style="position: relative; top: 0; right: 20px; opacity: 80%; background-color: 
         function replacer(idx, elem) {
             if (elem.nodeType == Node.TEXT_NODE) {
                 // Text node, see if there's something to replace
-                if ($(elem).text().search(regex) >= 0) {
-                    // Found a string to replace
-                    let newContent = $(elem).text().replaceAll(regex, `<span class='cdm-selection-${col}'>${selText}</span>`)
+                let oldText = $(elem).text();
+                if (oldText.search(regex) >= 0) {
+                    // Build new content from text divided by the selection
+                    let newContent = [];
+                    let texts = oldText.split(regex);
+                    for (let i = 0 ; i < texts.length; i++) {
+                        if (i > 0) {
+                            let spanNode = $.parseHTML(`<span class='cdm-selection-${col}'>${selText}</span>`)[0];
+                            newContent.push(spanNode);
+                        }
+                        let text = texts[i];
+                        if (text !== '') {
+                            let textNode = document.createTextNode(text);
+                            newContent.push(textNode);
+                        }
+                    }
                     $(elem).replaceWith(newContent);
                 }
             } else {
