@@ -224,7 +224,9 @@ class Core
     {
         let target = event.delegateTarget;
         if ($(target).hasClass("rp-reset")) {
-            this.initReset();
+            if (confirm("Do you really want to reset the state?")) {
+                this.initReset();
+            }
             return;
         }
         if ($(target).hasClass("rp-fold-all")) {
@@ -236,6 +238,10 @@ class Core
             return;
         }
         let set = $(target).hasClass("rp-setAll");
+        let msg = `Do you really want to mark all changes as ${set ? "done" : "not done"} ?`;
+        if (!confirm(msg)) {
+            return;
+        }
         for (let i = 0; i < this.diffs.length; i++) {
             let diff = this.diffs[i];
             this.setDone(diff.getId(), set);
