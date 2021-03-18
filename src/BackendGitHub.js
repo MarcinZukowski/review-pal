@@ -51,13 +51,23 @@ class BackendGitHub
         $("span.rp-button").on("click", rpcore.buttonPressed.bind(rpcore));
     }
 
-    updateStats(total, totalLines, done, doneLines, todo, todoLines)
+    updateSelections()
     {
         let selections = "";
         for (let i = 0; i < rpcore.selections.length; i++) {
             let sel = rpcore.selections[i];
-            selections += `<span class='rp-selection-${sel.color}'>${sel.text}</span> `;
+            let text = sel.text;
+            if (sel.lastFound !== null) {
+                text += `(${sel.lastFound + 1}/${sel.hits.length})`
+            }
+            selections += `<span data-rp-selection-idx='${i}' class='rp-selection rp-selection-${sel.color}'>${text}</span> `;
         }
+        $("#rp-selections").html(selections);
+        $("span.rp-selection").on("mousedown", rpcore.selectionFindNext.bind(rpcore));
+    }
+
+    updateStats(total, totalLines, done, doneLines, todo, todoLines)
+    {
         $("#" + rpcore.statsId).html(`
 <table class="rp-stats-table">
 <tr>
@@ -83,8 +93,7 @@ class BackendGitHub
     </th>
 </tr>
 <tr>
-<td colspan="4">
-${selections}
+<td colspan="4" id="rp-selections">
 </td>
 </tr>
 </table>
@@ -92,6 +101,8 @@ ${selections}
 
         $("span.rp-button").off("click");
         $("span.rp-button").on("click", rpcore.buttonPressed.bind(rpcore));
+
+        this.updateSelections();
     }
 
     waitForDiff(callback)
@@ -362,13 +373,20 @@ style="position: relative; top: 0; right: 20px; opacity: 80%; background-color: 
     {
         let selText = selection.text;
         let col = selection.color;
+        selection.hits = [];
 
         const regex = new RegExp(`\\b${selText}\\b`, 'g');
 
+        let topLine = null;
+
         function replacer(idx, elem) {
+            let jqelem = $(elem);
+            if (jqelem.hasClass("blob-code-inner")) {
+                topLine = jqelem.parent().prev();
+            }
             if (elem.nodeType == Node.TEXT_NODE) {
                 // Text node, see if there's something to replace
-                let oldText = $(elem).text();
+                let oldText = jqelem.text();
                 if (oldText.search(regex) >= 0) {
                     // Build new content from text divided by the selection
                     let newContent = [];
@@ -384,11 +402,16 @@ style="position: relative; top: 0; right: 20px; opacity: 80%; background-color: 
                             newContent.push(textNode);
                         }
                     }
-                    $(elem).replaceWith(newContent);
+                    jqelem.replaceWith(newContent);
+                    // Save this line to our collection of replacements
+                    if (topLine) {
+                        selection.hits.push(topLine);
+                        topLine = null;
+                    }
                 }
             } else {
                 // Go deeper
-                $(elem).contents().each(replacer);
+                jqelem.contents().each(replacer);
             }
         }
 

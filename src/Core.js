@@ -76,13 +76,16 @@ class Core
         console.log(`Adding selection for ${selText}`)
         let idx = this.selections.length;
         let col = this.selectionAvailableColors.pop();
-        let selection = {text: selText, color: col}
+        let selection = {
+            text: selText,
+            color: col,
+            lastFound: null
+        };
 
         this.backend.selectionAdd(selection);
 
         this.selections.push(selection)
-        this.selectionShow();
-
+        this.selectionsUpdate();
     }
 
     selectionRemove(idx)
@@ -94,14 +97,14 @@ class Core
 
         this.selectionAvailableColors.push(selection.color);
         this.selections.splice(idx, 1);
-        this.selectionShow();
+        this.selectionsUpdate();
     }
 
-    selectionShow()
+    selectionsUpdate()
     {
         console.log(this.selections);
         console.log(this.selectionAvailableColors);
-        this.updateStats();
+        this.backend.updateSelections();
     }
 
     doubleClick(ev)
@@ -449,6 +452,63 @@ class Core
         this.updateStats();
 
         this.initDataSave();
+    }
+
+    selectionFindNext(event)
+    {
+        // Only middle click
+        if (event.which !== 2) {
+            return true;
+        }
+
+        let containerOffset = this.backend.getDiffContainerOffset();
+
+        let selectionIdx = $(event.target).attr("data-rp-selection-idx");
+        let selection = this.selections[selectionIdx];
+        let hits = selection.hits;
+
+        // Erase lastFound for other selections
+        for (let s = 0; s < this.selections.length; s++) {
+            if (s != selectionIdx) {
+                this.selections[s].lastFound = null;
+            }
+        }
+
+        let cls = this.backend.CLASS_JUMP;
+        $(`.${cls}`).removeClass(cls);
+
+        let currentTop = $(window).scrollTop();
+        let foundIdx = null;
+        let foundTop = 0;
+        let count = hits.length;
+        for (let h = 0; h < count; h++) {
+            let line = hits[h];
+            let top = line.offset().top - containerOffset;
+
+            // Accept first matching row after the previous selection, or first matching after the current window position.
+            if ((foundIdx === null && h > selection.lastFound) || top > currentTop) {
+                foundIdx = h;
+                foundTop = top;
+                if (top > currentTop) {
+                    break;
+                }
+            }
+        }
+        if (foundIdx === null) {  // wrap
+            foundIdx = 0;
+            foundTop = hits[0].offset().top - containerOffset;
+        }
+        this.message(`Scrolling for ${selection.text}: ${selection.lastFound} => ${foundIdx}`);
+
+        selection.lastFound = foundIdx;
+        let foundDiff = hits[foundIdx];
+
+        $(window).scrollTop(foundTop);
+        foundDiff.parent().addClass(cls);
+
+        this.backend.updateSelections();
+
+        return false;
     }
 
     // Forwards to backend
