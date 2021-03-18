@@ -83,8 +83,7 @@
 @keyframes rp-jump-ani{
       0% { opacity: 1.0; }
      50% { opacity: 0.2; }
-    100% { opacity: 1.0;
-           background-color: red; }
+    100% { opacity: 1.0; }
 }
 .rp-jump {
     animation-name: rp-jump-ani;
