@@ -20,9 +20,22 @@ class BackendGitHub
         rpcore.id = m[1];
     }
 
-    initBar()
+    async initBar()
     {
-        let tb = $(".pr-toolbar");
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        console.log("initBar");
+        let tb;
+        for (let r = 0; r < 5; r++) {
+            tb = $(".pr-toolbar");
+            if (tb.length) {
+                break;
+            }
+            console.warn(`Can't find pr-toolbar (attempt #${r + 1}`);
+            await sleep(500);
+        }
         if (tb.length === 0) {
             console.error("Can't find pr-toolbar");
             return;

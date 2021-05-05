@@ -2,17 +2,22 @@
   "manifest_version": 2,
  
   "name": "Review Pal",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Code-reviewer life improvements for GitHub and Crucible",
 
   "permissions": [
-    "storage"
+    "storage",
+    "tabs"
   ],
 
   "web_accessible_resources": [
     "images/*"
   ],
- 
+
+  "background": {
+    "service_worker": "Background.js"
+  },
+
   "content_scripts": [{
     "run_at": "document_end",
     "css": ["styles.css"],
@@ -26,8 +31,7 @@
     ],
     "matches": [
       "https://*/fisheye/cru/*",
-      "https://github.com/*/pull/*/files*",
-      "https://github.com/*/pull/*/commits*"
+      "https://github.com/*/pull/*"
     ]
   }]
 }

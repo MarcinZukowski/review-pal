@@ -35,14 +35,10 @@ It is super useful when reviewing complex diffs, PRs with a lot of changes, or w
 
 #### GitHub limitations
 * Only works in split view currently (if I get enough requests, will add unified view support)
-* Only activates if one opens the `https://github.com/.../pull/<NUMBER>/files` page.
- <br/>**Note that you might need ot reload that page for this to activate.**  
 * When watching the same PR with a different subset of commits, the same "diff" (same changed lines)
   might not be recognized as such, as they might have different positions (line numbers) in the file.
   So e.g. marking a diff as done when reviewing a single commit 
   might not be reflected in all-commits review.
-* **If someone has an idea how to improve either of the above, please let me know**
-
 
 #### Crucible only
 * Automatically marking entire-file as reviewed once individual changes are reviewed
@@ -53,8 +49,7 @@ It is super useful when reviewing complex diffs, PRs with a lot of changes, or w
 
 * Only matches these URLs:
   * ``https://*/fisheye/cru/*``
-  * ``https://github.com/*/pull/*/files*``
-  * ``https://github.com/*/pull/*/commits*``
+  * ``https://github.com/*/pull/*/*``
   
   modify manifest.json if your Crucible is installed somewhere else
   

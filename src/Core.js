@@ -27,7 +27,19 @@ class Core
         $(window).on("mousedown", this.middleClick.bind(this));
         $(window).on("dblclick", this.doubleClick.bind(this));
         $(window).on("keypress", this.keyPressed.bind(this));
+
+        // https://stackoverflow.com/questions/34957319/how-to-listen-for-url-change-with-chrome-extension
+        chrome.runtime.onMessage.addListener(this.handleMessage.bind(this));
+
         this.hashChanged();
+    }
+
+    handleMessage(request, sender, sendResponse)
+    {
+        if (request.message === 'hello!') {
+            console.log(request.url) // new url is now in content scripts!
+            this.hashChanged();
+        }
     }
 
     keyPressed(e)
