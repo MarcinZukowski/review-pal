@@ -473,6 +473,8 @@ class Core
             return true;
         }
 
+        let forward = ! event.shiftKey;
+
         let containerOffset = this.backend.getDiffContainerOffset();
 
         let selectionIdx = $(event.target).attr("data-rp-selection-idx");
@@ -493,22 +495,40 @@ class Core
         let foundIdx = null;
         let foundTop = 0;
         let count = hits.length;
-        for (let h = 0; h < count; h++) {
+
+        // Find the first matching hit, depending on the forward/backward search
+        let h_from = forward ? 0 : count - 1;  // inclusive
+        let h_to = forward ? count : -1;  // exclusive
+        let h_step = forward ? 1 : -1;
+        for (let h = h_from; h != h_to; h += h_step) {
             let line = hits[h];
             let top = line.offset().top - containerOffset;
 
-            // Accept first matching row after the previous selection, or first matching after the current window position.
-            if ((foundIdx === null && h > selection.lastFound) || top > currentTop) {
+            // Accept the first matching row before/after the current selection ...
+            let indexMatches = false;
+            // Take care of multiple hits on the same line
+            if (selection.lastFound) {
+                let lastLine = hits[selection.lastFound];
+                let lastTop = lastLine.offset().top - containerOffset;
+                indexMatches = forward ? h > selection.lastFound  : h < selection.lastFound;
+                // Handle multiple hits in the same line
+                indexMatches &&= lastTop != top;
+            }
+
+            // ... or the first matching before/after the current window position.
+            let topMatches = forward ? top > currentTop : top < currentTop;
+
+            if (indexMatches || topMatches) {
                 foundIdx = h;
                 foundTop = top;
-                if (top > currentTop) {
-                    break;
-                }
+                break;
             }
         }
-        if (foundIdx === null) {  // wrap
-            foundIdx = 0;
-            foundTop = hits[0].offset().top - containerOffset;
+
+        if (foundIdx === null) {
+            // Not found, wrap around
+            foundIdx = forward ? 0 : count - 1;
+            foundTop = hits[foundIdx].offset().top - containerOffset;
         }
         this.message(`Scrolling for ${selection.text}: ${selection.lastFound} => ${foundIdx}`);
 

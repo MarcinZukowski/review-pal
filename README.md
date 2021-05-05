@@ -28,8 +28,8 @@ It is super useful when reviewing complex diffs, PRs with a lot of changes, or w
   * `shift+X`, `shift+ctrl+X` - mark diff reviewed / unreviewed
 * Ability to highlight multiple words with double-click, up to 8 different highlights. (*GitHub only*)
   * How: Double click on a word to add/remove. Double click on an empty space to remove all. 
-* Jump to the next occurrence of any highlight
-  * How: Middle-click on a highlighted word in the top menu
+* Jump to the next/previous occurrence of any highlighted word
+  * How: Middle-click (+ SHIFT) on a highlighted word in the top menu for the next (previous) occurrence. 
 * Local browser persistence
 
 
