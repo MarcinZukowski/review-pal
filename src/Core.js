@@ -12,6 +12,7 @@ class Core
         this.greenHTML = `src="${greenUrl}" alt="(X)" `;
         this.selections = [];
         this.selectionAvailableColors = [0,1,2,3,4,5,6,7];
+        this.indentSizes = true;
 
         console.log(window.location.href);
         if (window.location.href.search("github") >= 0) {
@@ -252,6 +253,11 @@ class Core
             this.backend.unfoldAll();
             return;
         }
+        if ($(target).hasClass("rp-toggle-indentsizes")) {
+            this.indentSizes = !this.indentSizes;
+            this.backend.toggleIndentSizes(this.indentSizes);
+            return;
+        }
         let set = $(target).hasClass("rp-setAll");
         let msg = `Do you really want to mark all changes as ${set ? "done" : "not done"} ?`;
         if (!confirm(msg)) {
@@ -365,6 +371,7 @@ class Core
 
         this.message("Diff data analyzed");
         this.updateStats();
+        this.backend.toggleIndentSizes(this.indentSizes);
     }
 
     message(str)

@@ -80,6 +80,26 @@
     animation-fill-mode: forwards;
 }
 
+.rp-indentvis {
+    position:absolute;
+    z-index:2;
+    color: rgba(0, 0, 0, 0.1);
+}
+
+.rp-indentsizes {
+    position:absolute;
+    z-index:1;
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 1px;
+    line-height: 8px;
+    color: #fff !important;
+    font-size: xx-small;
+}
+
+.rp-hidden.rp-indentsizes {
+    color: #fff !important;
+}
+
 @keyframes rp-jump-ani{
       0% { opacity: 1.0; }
      50% { opacity: 0.2; }

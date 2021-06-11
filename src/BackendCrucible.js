@@ -269,4 +269,9 @@ ${rpcore.LABEL}: &nbsp; ${total} diffs (${totalLines} lines) in total.
     {
         console.log("Not implemented")
     }
+
+    toggleIndentSizes(on)
+    {
+        console.log("Not implemented")
+    }
 }

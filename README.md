@@ -29,7 +29,8 @@ It is super useful when reviewing complex diffs, PRs with a lot of changes, or w
 * Ability to highlight multiple words with double-click, up to 8 different highlights. (*GitHub only*)
   * How: Double click on a word to add/remove. Double click on an empty space to remove all. 
 * Jump to the next/previous occurrence of any highlighted word
-  * How: Middle-click (+ SHIFT) on a highlighted word in the top menu for the next (previous) occurrence. 
+  * How: Middle-click (+ SHIFT) on a highlighted word in the top menu for the next (previous) occurrence.
+* Displaying the text indent level
 * Local browser persistence
 
 

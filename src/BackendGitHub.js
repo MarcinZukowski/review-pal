@@ -28,7 +28,7 @@ class BackendGitHub
 
         console.log("initBar");
         let tb;
-        for (let r = 0; r < 5; r++) {
+        for (let r = 0; r < 10; r++) {
             tb = $(".pr-toolbar");
             if (tb.length) {
                 break;
@@ -47,6 +47,9 @@ class BackendGitHub
         bar.html(`
 <span class="rp-stats-github" id="${rpcore.statsId}">${rpcore.LABEL}</span>
 <span class="rp-toolbox">
+  <span class="rp-button rp-toggle-indentsizes" title="Toggle line indent sizes">
+    2>
+  </span>
   <!-- Blatantly copied -->
   <span class="rp-button rp-unfold-all" title="Unfold all files">
     <svg viewBox="0 0 10 16" version="1.1" width="10" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M5 11L0 6l1.5-1.5L5 8.25 8.5 4.5 10 6l-5 5z"></path></svg>
@@ -429,5 +432,27 @@ style="position: relative; top: 0; right: 20px; opacity: 80%; background-color: 
         }
 
         $("span.blob-code-inner").each(replacer);
+    }
+
+    toggleIndentSizes(on)
+    {
+        // let pattern = "╷.".repeat(50);
+        if (on) {
+            rpcore.message("Showing indent sizes");
+            $(".blob-code-inner").each(function() {
+                let text = this.textContent;
+                if (text) {
+                    let indent = text.length - text.trimLeft().length;
+                    if (indent >= 2) {
+                        // let pattext = pattern.substr(0, indent);
+                        // $(this).prepend(`<span class="rp-indent rp-indentvis">${pattext}</span>`);
+                        $(this).prepend(`<span class="rp-indent rp-indentsizes">${indent}></span>`);
+                    }
+                }
+            });
+        } else {
+            rpcore.message("Hiding indent sizes");
+            $(".rp-indent").remove();
+        }
     }
 }
