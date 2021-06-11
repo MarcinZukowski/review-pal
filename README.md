@@ -1,11 +1,11 @@
 # Review Pal
 
-A small Chrome extension for GitHub 
+A small Chrome extension for GitHub and [Crucible](https://www.atlassian.com/software/crucible)
 that adds ability to mark individual changes (diff sections) 
 inside a file as done / not done. 
 
 It also allows splitting diffs into smaller sections (and marking them separately)
- and has a few other nice improvements
+and has a few other nice improvements.
 
 It is super useful when reviewing complex diffs, PRs with a lot of changes, or with very large changes.
 
@@ -35,6 +35,7 @@ It is super useful when reviewing complex diffs, PRs with a lot of changes, or w
 
 
 #### GitHub limitations
+
 * Only works in split view currently (if I get enough requests, will add unified view support)
 * When watching the same PR with a different subset of commits, the same "diff" (same changed lines)
   might not be recognized as such, as they might have different positions (line numbers) in the file.
@@ -42,6 +43,7 @@ It is super useful when reviewing complex diffs, PRs with a lot of changes, or w
   might not be reflected in all-commits review.
 
 #### Crucible only
+
 * Automatically marking entire-file as reviewed once individual changes are reviewed
 * Works in both unified and side-by-side views
 * Tracking per-file statistics of individual changes
@@ -52,7 +54,7 @@ It is super useful when reviewing complex diffs, PRs with a lot of changes, or w
   * ``https://*/fisheye/cru/*``
   * ``https://github.com/*/pull/*/*``
   
-  modify manifest.json if your Crucible is installed somewhere else
+  Modify manifest.json if your Crucible is installed somewhere else.
   
 * Crucible backend is not maintained anymore
   * Only tested on Crucible 4.5
@@ -73,7 +75,7 @@ To install it:
 ## History
 
 This project used to be called `crucible-diff-marker`,
- as it was originally developed for Crucible.
+as it was originally developed for Crucible.
 That backend is not maintained anymore, but it might still work.
 
 The first version was a result of roughly a day of work, it was fun to go blindly where I never ventured before 
