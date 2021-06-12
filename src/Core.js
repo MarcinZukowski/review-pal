@@ -12,7 +12,7 @@ class Core
         this.greenHTML = `src="${greenUrl}" alt="(X)" `;
         this.selections = [];
         this.selectionAvailableColors = [0,1,2,3,4,5,6,7];
-        this.indentSizes = true;
+        this.indentSizes = false;
 
         console.log(window.location.href);
         if (window.location.href.search("github") >= 0) {
