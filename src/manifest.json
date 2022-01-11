@@ -2,7 +2,7 @@
   "manifest_version": 2,
  
   "name": "Review Pal",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "Code-reviewer life improvements for GitHub and Crucible",
 
   "permissions": [

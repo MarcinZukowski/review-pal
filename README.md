@@ -13,7 +13,7 @@ It is super useful when reviewing complex diffs, PRs with a lot of changes, or w
 
 * Mark individual changes as done / not done
 * Manually break a change into smaller changes
-  * How: Middle-click on the (2nd or later) line in a change to split or unsplit
+  * How: Middle-click or ALT+click on the (2nd or later) line in a change to split or unsplit
   * Very useful for splitting huge changes (or entire new files) into smaller review units 
 * Jump to the next done / todo change.
   * How: Click on "X diffs done" or "Y diffs to do" 

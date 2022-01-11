@@ -25,7 +25,7 @@ class Core
     start()
     {
         $(window).on('hashchange', this.hashChanged.bind(this));
-        $(window).on("mousedown", this.middleClick.bind(this));
+        $(window).on("mousedown", this.mouseClick.bind(this));
         $(window).on("dblclick", this.doubleClick.bind(this));
         $(window).on("keypress", this.keyPressed.bind(this));
 
@@ -145,14 +145,17 @@ class Core
         }
     }
 
-    middleClick(ev)
+    mouseClick(ev)
     {
-        let target = $(ev.target);
+        // Only middle click or ALT+left click
 
-        // Only middle click
-        if (ev.which !== 2) {
+        if (!(ev.which === 2 || (ev.which === 1 && ev.altKey))) {
             return true;
         }
+
+        // Introduce/remove a break in a diff
+
+        let target = $(ev.target);
 
         // Check if it's a diff row
         let row = this.backend.getParentRow(target);
