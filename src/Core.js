@@ -256,6 +256,14 @@ class Core
             this.backend.unfoldAll();
             return;
         }
+        if ($(target).hasClass("rp-hide-all-comments")) {
+            this.backend.hideAllComments();
+            return;
+        }
+        if ($(target).hasClass("rp-unhide-all-comments")) {
+            this.backend.unhideAllComments();
+            return;
+        }
         if ($(target).hasClass("rp-toggle-indentsizes")) {
             this.indentSizes = !this.indentSizes;
             this.backend.toggleIndentSizes(this.indentSizes);

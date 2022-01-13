@@ -52,10 +52,16 @@ class BackendGitHub
   </span>
   <!-- Blatantly copied -->
   <span class="rp-button rp-unfold-all" title="Unfold all files">
-    <svg viewBox="0 0 10 16" version="1.1" width="10" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M5 11L0 6l1.5-1.5L5 8.25 8.5 4.5 10 6l-5 5z"></path></svg>
+    F<svg viewBox="0 -2 10 16" version="1.1" width="10" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M5 11L0 6l1.5-1.5L5 8.25 8.5 4.5 10 6l-5 5z"></path></svg>
   </span>
   <span class="rp-button rp-fold-all" title="Fold all files">
-    <svg viewBox="0 0 8 16" version="1.1" width="8" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M7.5 8l-5 5L1 11.5 4.75 8 1 4.5 2.5 3l5 5z"></path></svg>
+    F<svg viewBox="0 -2 8 16" version="1.1" width="8" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M7.5 8l-5 5L1 11.5 4.75 8 1 4.5 2.5 3l5 5z"></path></svg>
+  </span>
+  <span class="rp-button rp-unhide-all-comments" title="Unhide all comments">
+    C<svg viewBox="0 -2 10 16" version="1.1" width="10" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M5 11L0 6l1.5-1.5L5 8.25 8.5 4.5 10 6l-5 5z"></path></svg>
+  </span>
+  <span class="rp-button rp-hide-all-comments" title="Hide all comments">
+    C<svg viewBox="0 -2 8 16" version="1.1" width="8" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M7.5 8l-5 5L1 11.5 4.75 8 1 4.5 2.5 3l5 5z"></path></svg>
   </span>
 
   <span class="rp-button rp-reset" title="Reload">
@@ -375,6 +381,16 @@ style="position: relative; top: 0; right: 20px; opacity: 80%; background-color: 
     {
         $(".js-file").addClass("open");
         $(".js-file").addClass("Details--on");
+    }
+
+    hideAllComments()
+    {
+        $(".js-resolvable-timeline-thread-container").addClass("rp-comment-hidden");
+    }
+
+    unhideAllComments()
+    {
+        $(".js-resolvable-timeline-thread-container").removeClass("rp-comment-hidden");
     }
 
     selectionRemove(selection)

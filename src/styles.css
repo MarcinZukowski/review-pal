@@ -230,3 +230,14 @@ a.rp-label:link {
 .rp-selection-5 { color: white; background: darkcyan; }
 .rp-selection-6 { color: white; background: darkmagenta; }
 .rp-selection-7 { color: white; background: darkgoldenrod; }
+
+.rp-comment-hidden .comment-holder {
+    display: none;
+}
+
+.rp-comment-hidden::after {
+    content: "... comment hidden ...";
+    font-style: italic;
+    font-size: 6pt;
+    color: red;
+}

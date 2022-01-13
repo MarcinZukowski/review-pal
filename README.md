@@ -20,7 +20,8 @@ It is super useful when reviewing complex diffs, PRs with a lot of changes, or w
 * Mark all changes as done/not done
   * in GitHub: per-file and globally
   * In Crucible: per-file only
-* Fold/unfold all files (*GitHub only*)  
+* Fold/unfold all files (*GitHub only*)
+* Hide/show all comments (*GitHub only*)
 * Review statistics (number of diffs and lines)
 * Keyboard shortcuts:
   * `shift+K` - next unreviewed diff
