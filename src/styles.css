@@ -231,6 +231,39 @@ a.rp-label:link {
 .rp-selection-6 { color: white; background: darkmagenta; }
 .rp-selection-7 { color: white; background: darkgoldenrod; }
 
+/* New (React) GitHub view */
+
+.rp-bar-github-react {
+    position: sticky;
+    top: 8px;
+    z-index: 25;
+    width: 480px;
+    margin: 4px auto;
+    height: auto;
+}
+
+/* Anchor for the absolutely-positioned diff markers */
+td.new-diff-line-number {
+    position: relative;
+}
+
+.rp-diff-marker {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 5;
+    opacity: 80%;
+    background-color: white;
+    cursor: pointer;
+}
+
+/* The file header is a flexbox there, float does not apply */
+[data-diff-header-wrapper] .rp-github-per-file-stats {
+    float: none;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
 .rp-comment-hidden .comment-holder {
     display: none;
 }

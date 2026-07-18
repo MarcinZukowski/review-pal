@@ -1,6 +1,6 @@
 # Review Pal
 
-A small Chrome extension for GitHub and [Crucible](https://www.atlassian.com/software/crucible)
+A small browser extension (Chrome and Firefox) for GitHub and [Crucible](https://www.atlassian.com/software/crucible)
 that adds ability to mark individual changes (diff sections) 
 inside a file as done / not done. 
 
@@ -37,6 +37,9 @@ It is super useful when reviewing complex diffs, PRs with a lot of changes, or w
 
 #### GitHub limitations
 
+* Both the classic diff view and the new React-based view (the ``/pull/N/changes``
+  URLs GitHub is rolling out) are supported; the flavor is auto-detected.
+  * In the new view, fold/unfold-all and hide/show-comments are not supported yet.
 * Only works in split view currently (if I get enough requests, will add unified view support)
 * When watching the same PR with a different subset of commits, the same "diff" (same changed lines)
   might not be recognized as such, as they might have different positions (line numbers) in the file.
@@ -65,13 +68,28 @@ It is super useful when reviewing complex diffs, PRs with a lot of changes, or w
 
 Currently, this extension is only available as a source code. 
 
-To install it:
-* In Chrome, go to ``chrome://extensions/``
+To install it in Chrome:
+* Go to ``chrome://extensions/``
 * Enable "Developer mode"
 * Click "Load unpacked"
 * Point to the ``src`` directory in this tree
 * Reload the GitHub/Crucible page
 * Done
+
+To install it in Firefox (140+):
+* Go to ``about:debugging#/runtime/this-firefox``
+* Click "Load Temporary Add-on..."
+* Point to ``src/manifest.json`` in this tree
+* Reload the GitHub/Crucible page
+* Done
+
+Note: a temporary add-on is removed when Firefox restarts.
+For a permanent install, the extension needs to be signed —
+either via [addons.mozilla.org](https://addons.mozilla.org)
+(self-distribution / unlisted is fine), or use Firefox
+Developer Edition / ESR with ``xpinstall.signatures.required``
+set to ``false`` in ``about:config`` and install the zipped
+``src`` directory via ``about:addons``.
 
 ## History
 

@@ -16,8 +16,12 @@ class Core
 
         console.log(window.location.href);
         if (window.location.href.search("github") >= 0) {
-            this.backend = new BackendGitHub();
+            // The backend flavor (classic vs new React UI) is only known once
+            // the page renders, so it is detected in hashChanged().
+            this.isGitHub = true;
+            this.backend = null;
         } else {
+            this.isGitHub = false;
             this.backend = new BackendCrucible();
         }
     }
@@ -45,6 +49,9 @@ class Core
 
     keyPressed(e)
     {
+        if (!this.backend) {
+            return true;
+        }
         if (!e.shiftKey || e.metaKey || e.altKey) {
             return true;
         }
@@ -122,7 +129,9 @@ class Core
 
     doubleClick(ev)
     {
-
+        if (!this.backend) {
+            return true;
+        }
         // Only left click
         if (ev.which != 1) {
             return true;
@@ -147,6 +156,9 @@ class Core
 
     mouseClick(ev)
     {
+        if (!this.backend) {
+            return true;
+        }
         // Only middle click or ALT+left click
 
         if (!(ev.which === 2 || (ev.which === 1 && ev.altKey))) {
@@ -198,9 +210,21 @@ class Core
         this.initDataSave(false);
     }
 
-    hashChanged()
+    async hashChanged()
     {
         this.href = window.location.href;
+
+        if (this.isGitHub) {
+            if (!this.href.match(/pull\/(.*)\/(files|commits|changes)/)) {
+                console.log("Not a diff page, exiting");
+                return;
+            }
+            this.backend = await BackendGitHub.detect();
+            if (!this.backend) {
+                return;
+            }
+        }
+
         this.dataKey = "rp::" + this.backend.generateDataKey();
         console.log(`Using dataKey: ${this.dataKey}`);
         this.lastFoundDiffIdx = -1;
@@ -367,11 +391,14 @@ class Core
 
     diffReady()
     {
-        this.message("Diff data ready, analyzing");
-        this.analyzeDiffs();
+        let quiet = this.backend.quiet;
+        if (!quiet) {
+            this.message("Diff data ready, analyzing");
+        }
+        this.analyzeDiffs(quiet);
     }
 
-    analyzeDiffs()
+    analyzeDiffs(quiet = false)
     {
         if (!this.data) {
             // Sometimes we get here when the data is not ready yet.
@@ -380,7 +407,9 @@ class Core
 
         this.backend.analyzeDiffs();
 
-        this.message("Diff data analyzed");
+        if (!quiet) {
+            this.message("Diff data analyzed");
+        }
         this.updateStats();
         this.backend.toggleIndentSizes(this.indentSizes);
     }

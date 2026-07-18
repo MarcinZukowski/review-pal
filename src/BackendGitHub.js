@@ -3,16 +3,51 @@ class BackendGitHub
     CLASS_JUMP = "rp-jump-github";
     // #ms before we start analyzing diffs
     WAIT_DELAY = 500;
+    // The element holding a single line of code, adjusted in BackendGitHubReact
+    CODE_LINE_CLASS = "blob-code-inner";
+    CODE_LINE_SELECTOR = "span.blob-code-inner";
+    // Only mutations involving these elements warrant a re-analysis
+    RESCAN_SELECTOR = ".file, [data-hunk], .js-diff-progressive-container, .blob-expanded";
 
     constructor()
     {
         console.log("Initializing BackendGitHub");
     }
 
+    /**
+     * GitHub serves either the classic server-rendered diff view or the new
+     * React-based one (the "/changes" URL), decided per session. Both render
+     * asynchronously, so poll until one of them shows up.
+     */
+    static async detect()
+    {
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        for (let r = 0; r < 120; r++) {
+            if ($("diff-layout, .pr-toolbar").length) {
+                console.log("Detected classic GitHub view");
+                return new BackendGitHub();
+            }
+            if ($("[data-testid='diff-content']").length) {
+                console.log("Detected new (React) GitHub view");
+                return new BackendGitHubReact();
+            }
+            await sleep(250);
+        }
+        console.error("Can't detect the GitHub diff UI flavor");
+        return null;
+    }
+
+    diffContainerSelector()
+    {
+        return "#files";
+    }
+
     deriveId()
     {
         let href = window.location.href;
-        let m = href.match(/pull\/(.*)\/(files|commits)/);
+        let m = href.match(/pull\/(.*)\/(files|commits|changes)/);
         if (!m) {
             console.log("No id, exiting");
             return;
@@ -44,7 +79,13 @@ class BackendGitHub
         tb.append(`<div class="rp-bar rp-bar-github" id="${rpcore.barId}"/><br/>`);
 
         let bar = $("#"+rpcore.barId);
-        bar.html(`
+        bar.html(this.barContentHTML());
+        $("span.rp-button").on("click", rpcore.buttonPressed.bind(rpcore));
+    }
+
+    barContentHTML()
+    {
+        return `
 <span class="rp-stats-github" id="${rpcore.statsId}">${rpcore.LABEL}</span>
 <span class="rp-toolbox">
   <span class="rp-button rp-toggle-indentsizes" title="Toggle line indent sizes">
@@ -69,8 +110,7 @@ class BackendGitHub
   </span>
 </span>
 <div class="rp-message-github" id="${rpcore.messageId}"></div>
-`);
-        $("span.rp-button").on("click", rpcore.buttonPressed.bind(rpcore));
+`;
     }
 
     updateSelections()
@@ -135,9 +175,13 @@ class BackendGitHub
         this.scheduleLoadCompletion();
     }
 
-    scheduleLoadCompletion()
+    scheduleLoadCompletion(quiet = false)
     {
-        rpcore.message("Data incoming");
+        // Automatic rescans (quiet) should not spam messages
+        this.quiet = quiet;
+        if (!quiet) {
+            rpcore.message("Data incoming");
+        }
         if (this.scheduledCall) {
             clearTimeout(this.scheduledCall);
         }
@@ -146,24 +190,57 @@ class BackendGitHub
 
     waitForDiffDone()
     {
-        $("#files").on("DOMNodeInserted", this.nodeInserted.bind(this));
-
-        $("hide-file-notes-toggle").on("DOMNodeInserted", this.nodeInserted.bind(this));
-        $("[data-hide-on-error]").on("DOMNodeRemovedFromDocument", this.fileLoaded.bind(this));
+        this.attachObserver();
 
         this.waitCallback();
     }
 
-    fileLoaded()
+    /**
+     * Re-analyze when GitHub adds/removes diff content (progressive loading,
+     * expanding files, React re-renders). Mutation events (DOMNodeInserted)
+     * were removed from browsers, so use a MutationObserver.
+     */
+    attachObserver()
     {
-        this.scheduleLoadCompletion();
+        let container = $(this.diffContainerSelector()).get(0);
+        if (!container) {
+            return;
+        }
+        if (BackendGitHub.observer) {
+            BackendGitHub.observer.disconnect();
+        }
+        BackendGitHub.observer = new MutationObserver(this.mutated.bind(this));
+        BackendGitHub.observer.observe(container, {childList: true, subtree: true});
     }
 
-    nodeInserted(ev)
+    mutated(mutations)
     {
-        // this element seems to be the last one inserted
-        if ($(ev.target).hasClass("js-diff-progressive-container")) {
-            this.scheduleLoadCompletion();
+        // Ignore our own DOM changes (all rp-* classed), else we'd loop forever.
+        // Text nodes count as ours: pure text changes never add diff rows.
+        function isOurs(node) {
+            return node.nodeType !== Node.ELEMENT_NODE
+                || [...node.classList].some(c => c.startsWith("rp-"));
+        }
+        // Only diff content matters; tooltips, sticky headers etc. appear
+        // constantly (e.g. while scrolling) and should not cause rescans.
+        let rescanSelector = this.RESCAN_SELECTOR;
+        function isRelevant(node) {
+            return node.nodeType === Node.ELEMENT_NODE
+                && (node.matches(rescanSelector) || node.querySelector(rescanSelector) !== null);
+        }
+        for (const m of mutations) {
+            if (isOurs(m.target)) {
+                continue;
+            }
+            let nodes = [...m.addedNodes, ...m.removedNodes];
+            if (nodes.every(isOurs)) {
+                continue;
+            }
+            if (!nodes.some(isRelevant)) {
+                continue;
+            }
+            this.scheduleLoadCompletion(true/*quiet*/);
+            return;
         }
     }
 
@@ -249,7 +326,7 @@ class BackendGitHub
             }
         }
         // Find file header
-        let header = $(`[data-path="${path}"]`);
+        let header = this.findFileHeader(path);
         header.find(".rp-github-per-file-stats").remove();
         let total = done + todo;
         let idAllDone = "fileSetAllDone_" + path;
@@ -264,9 +341,15 @@ class BackendGitHub
 Done: ${done} / ${total}
 </span>
         `);
-        header.find(".file-info").append(stats);
+        header.append(stats);
         $(`[data-alldone="${path}"]`).on("click", this.setAllPerFile.bind(this, path, true));
         $(`[data-allclear="${path}"]`).on("click", this.setAllPerFile.bind(this, path, false));
+    }
+
+    /** Element the per-file stats should be appended to */
+    findFileHeader(path)
+    {
+        return $(`[data-path="${path}"]`).find(".file-info");
     }
 
     setAllPerFile(path, set)
@@ -291,7 +374,7 @@ Done: ${done} / ${total}
         let isDone = rpcore.isDone(id);
         for (let r = 0; r < diff.lines.length; r++) {
             let row = $(diff.lines[r].row);
-            let elems = row.find("span, .lineContent , .diffContentA , .diffContentB , .diffLineNumbersA , .diffLineNumbersB");
+            let elems = row.find("span, .diff-text-inner , .lineContent , .diffContentA , .diffContentB , .diffLineNumbersA , .diffLineNumbersB");
             if (isDone) {
                 elems.addClass("rp-hidden");
             } else {
@@ -357,7 +440,7 @@ style="position: relative; top: 0; right: 20px; opacity: 80%; background-color: 
 
     getDiffContainerOffset()
     {
-        let container = $("#files");
+        let container = $(this.diffContainerSelector());
         let containerOffset = container.offset().top - container.scrollTop();
         return containerOffset;
     }
@@ -410,11 +493,12 @@ style="position: relative; top: 0; right: 20px; opacity: 80%; background-color: 
         const regex = new RegExp(`\\b${selText}\\b`, 'g');
 
         let topLine = null;
+        let codeLineClass = this.CODE_LINE_CLASS;
 
         function replacer(idx, elem) {
             let jqelem = $(elem);
-            if (jqelem.hasClass("blob-code-inner")) {
-                topLine = jqelem.parent().prev();
+            if (jqelem.hasClass(codeLineClass)) {
+                topLine = jqelem.closest("td").prev();
             }
             if (elem.nodeType == Node.TEXT_NODE) {
                 // Text node, see if there's something to replace
@@ -447,7 +531,7 @@ style="position: relative; top: 0; right: 20px; opacity: 80%; background-color: 
             }
         }
 
-        $("span.blob-code-inner").each(replacer);
+        $(this.CODE_LINE_SELECTOR).each(replacer);
     }
 
     toggleIndentSizes(on)
@@ -455,7 +539,7 @@ style="position: relative; top: 0; right: 20px; opacity: 80%; background-color: 
         // let pattern = "╷.".repeat(50);
         if (on) {
             rpcore.message("Showing indent sizes");
-            $(".blob-code-inner").each(function() {
+            $(this.CODE_LINE_SELECTOR).each(function() {
                 let text = this.textContent;
                 if (text) {
                     let indent = text.length - text.trimLeft().length;
@@ -467,8 +551,11 @@ style="position: relative; top: 0; right: 20px; opacity: 80%; background-color: 
                 }
             });
         } else {
-            rpcore.message("Hiding indent sizes");
-            $(".rp-indent").remove();
+            let indents = $(".rp-indent");
+            if (indents.length) {
+                rpcore.message("Hiding indent sizes");
+                indents.remove();
+            }
         }
     }
 }

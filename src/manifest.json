@@ -1,8 +1,8 @@
 {
-  "manifest_version": 2,
- 
+  "manifest_version": 3,
+
   "name": "Review Pal",
-  "version": "0.5.3",
+  "version": "0.7.0",
   "description": "Code-reviewer life improvements for GitHub and Crucible",
 
   "permissions": [
@@ -10,12 +10,29 @@
     "tabs"
   ],
 
-  "web_accessible_resources": [
-    "images/*"
+  "host_permissions": [
+    "https://*/fisheye/cru/*",
+    "https://github.com/*/pull/*"
   ],
 
+  "web_accessible_resources": [{
+    "resources": ["images/*"],
+    "matches": ["https://*/*"]
+  }],
+
   "background": {
-    "service_worker": "Background.js"
+    "service_worker": "Background.js",
+    "scripts": ["Background.js"]
+  },
+
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "review-pal@marcinzukowski.github.io",
+      "strict_min_version": "140.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
   },
 
   "content_scripts": [{
@@ -25,6 +42,7 @@
       "3rd/jquery-3.3.1.slim.min.js",
       "BackendCrucible.js",
       "BackendGitHub.js",
+      "BackendGitHubReact.js",
       "Core.js",
       "DiffBlock.js",
       "DiffLine.js"
